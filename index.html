@@ -1,0 +1,683 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Project Level The Field — Goal Portal</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --green: #1a6b3c; --green-mid: #2d8f55; --green-light: #e8f5ee;
+    --gold: #c8963e; --gold-light: #fdf3e3;
+    --red: #c0392b; --red-light: #fdecea;
+    --blue: #2563ab; --blue-light: #dbeafe;
+    --cream: #faf8f4; --ink: #1c1c1c; --muted: #6b7280;
+    --border: #d6d2ca; --white: #ffffff;
+    --ws1: #1a6b3c; --ws2: #2563ab; --ws3: #7c3aed;
+  }
+  body { font-family: 'DM Sans', sans-serif; background: var(--cream); color: var(--ink); min-height: 100vh; }
+
+  /* LOGIN */
+  .login-wrap { min-height: 100vh; display: flex; align-items: center; justify-content: center; background: linear-gradient(135deg, #0f3d22 0%, #1a6b3c 60%, #2d8f55 100%); }
+  .login-card { background: white; border-radius: 16px; padding: 48px 40px 40px; width: 380px; box-shadow: 0 24px 64px rgba(0,0,0,0.3); text-align: center; }
+  .login-logo { font-family: 'DM Serif Display', serif; font-size: 1.5rem; color: var(--green); margin-bottom: 4px; }
+  .login-sub { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.1em; color: var(--muted); margin-bottom: 32px; font-weight: 600; }
+  .login-label { display: block; text-align: left; font-size: 0.76rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.07em; color: var(--ink); margin-bottom: 6px; }
+  .login-input { width: 100%; border: 2px solid var(--border); border-radius: 8px; padding: 12px 14px; font-family: 'DM Sans', sans-serif; font-size: 0.92rem; outline: none; transition: border-color 0.15s; margin-bottom: 20px; }
+  .login-input:focus { border-color: var(--green); }
+  .login-btn { width: 100%; background: var(--green); color: white; border: none; border-radius: 8px; padding: 13px; font-family: 'DM Sans', sans-serif; font-size: 0.9rem; font-weight: 700; cursor: pointer; text-transform: uppercase; letter-spacing: 0.08em; transition: background 0.15s; }
+  .login-btn:hover { background: var(--green-mid); }
+  .login-error { background: var(--red-light); color: var(--red); border-radius: 6px; padding: 9px 12px; font-size: 0.78rem; font-weight: 600; margin-bottom: 16px; }
+
+  /* LOADING */
+  .loading-wrap { min-height: 100vh; display: flex; align-items: center; justify-content: center; flex-direction: column; gap: 16px; background: var(--cream); }
+  .spinner { width: 38px; height: 38px; border: 3px solid var(--green-light); border-top-color: var(--green); border-radius: 50%; animation: spin 0.7s linear infinite; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .loading-text { font-size: 0.84rem; color: var(--muted); font-weight: 500; }
+
+  /* HEADER */
+  .header { background: var(--green); color: white; padding: 22px 40px 20px; display: flex; align-items: center; justify-content: space-between; gap: 16px; position: sticky; top: 0; z-index: 100; box-shadow: 0 2px 12px rgba(0,0,0,0.15); }
+  .header-left h1 { font-family: 'DM Serif Display', serif; font-size: 1.6rem; letter-spacing: -0.01em; line-height: 1.1; }
+  .header-left p { font-size: 0.74rem; opacity: 0.7; margin-top: 3px; text-transform: uppercase; letter-spacing: 0.09em; font-weight: 500; }
+  .header-right { display: flex; gap: 10px; align-items: center; }
+  .save-status { font-size: 0.72rem; color: rgba(255,255,255,0.65); font-weight: 500; white-space: nowrap; }
+  .btn { display: inline-flex; align-items: center; gap: 6px; padding: 7px 16px; border-radius: 6px; font-size: 0.78rem; font-weight: 600; cursor: pointer; border: none; transition: all 0.18s; font-family: 'DM Sans', sans-serif; text-transform: uppercase; letter-spacing: 0.06em; }
+  .btn-ghost { background: rgba(255,255,255,0.15); color: white; border: 1.5px solid rgba(255,255,255,0.3); }
+  .btn-ghost:hover { background: rgba(255,255,255,0.25); }
+
+  /* WS BAR */
+  .ws-bar { background: white; border-bottom: 1px solid var(--border); padding: 0 40px; display: flex; align-items: center; gap: 24px; flex-wrap: wrap; }
+  .ws-bar-label { font-size: 0.7rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; color: var(--muted); padding: 12px 0; white-space: nowrap; }
+  .ws-pill { display: inline-flex; align-items: center; gap: 6px; font-size: 0.72rem; font-weight: 500; padding: 4px 10px; border-radius: 20px; }
+  .ws-dot { width: 7px; height: 7px; border-radius: 50%; }
+  .ws1 { background: #e8f5ee; color: var(--ws1); } .ws1 .ws-dot { background: var(--ws1); }
+  .ws2 { background: #dbeafe; color: var(--ws2); } .ws2 .ws-dot { background: var(--ws2); }
+  .ws3 { background: #ede9fe; color: var(--ws3); } .ws3 .ws-dot { background: var(--ws3); }
+
+  /* NAV */
+  .nav-tabs { background: white; border-bottom: 2px solid var(--border); padding: 0 40px; display: flex; gap: 2px; overflow-x: auto; position: sticky; top: 81px; z-index: 99; }
+  .tab { padding: 13px 16px 11px; font-size: 0.78rem; font-weight: 500; color: var(--muted); cursor: pointer; border-bottom: 3px solid transparent; margin-bottom: -2px; white-space: nowrap; transition: all 0.15s; flex-shrink: 0; }
+  .tab:hover { color: var(--green); }
+  .tab.active { color: var(--green); border-color: var(--green); font-weight: 700; }
+
+  /* MAIN */
+  .main { padding: 28px 40px; max-width: 1100px; }
+
+  /* FILTER */
+  .ws-filter-bar { display: flex; gap: 8px; margin-bottom: 20px; flex-wrap: wrap; }
+  .ws-filter-btn { padding: 5px 13px; border-radius: 20px; border: 1.5px solid var(--border); background: white; font-size: 0.72rem; font-weight: 600; cursor: pointer; font-family: 'DM Sans', sans-serif; transition: all 0.15s; text-transform: uppercase; letter-spacing: 0.05em; color: var(--muted); }
+  .ws-filter-btn.active-all { border-color: var(--green); background: var(--green); color: white; }
+  .ws-filter-btn.active-ws1 { border-color: var(--ws1); background: var(--ws1); color: white; }
+  .ws-filter-btn.active-ws2 { border-color: var(--ws2); background: var(--ws2); color: white; }
+  .ws-filter-btn.active-ws3 { border-color: var(--ws3); background: var(--ws3); color: white; }
+
+  /* OVERVIEW */
+  .overview-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
+  .overview-card { background: white; border: 1px solid var(--border); border-radius: 10px; padding: 16px; cursor: pointer; transition: all 0.18s; box-shadow: 0 1px 3px rgba(0,0,0,0.04); }
+  .overview-card:hover { border-color: var(--green); transform: translateY(-2px); box-shadow: 0 4px 16px rgba(26,107,60,0.1); }
+  .overview-card-title { font-family: 'DM Serif Display', serif; font-size: 0.95rem; color: var(--ink); margin-bottom: 10px; }
+  .progress-label { display: flex; justify-content: space-between; font-size: 0.68rem; color: var(--muted); margin-bottom: 4px; }
+  .progress-bar { height: 6px; background: var(--green-light); border-radius: 3px; overflow: hidden; }
+  .progress-fill { height: 100%; background: linear-gradient(90deg, var(--green), var(--green-mid)); border-radius: 3px; transition: width 0.4s ease; }
+  .progress-fill.all-done { background: linear-gradient(90deg, #15803d, #22c55e); }
+  .badge { font-size: 0.66rem; font-weight: 700; padding: 2px 7px; border-radius: 10px; }
+  .badge-green { background: var(--green-light); color: var(--green); }
+  .badge-red { background: var(--red-light); color: var(--red); }
+  .badge-blue { background: var(--blue-light); color: var(--blue); }
+
+  /* POSITION */
+  .position-card { background: white; border: 1px solid var(--border); border-radius: 12px; overflow: hidden; margin-bottom: 24px; box-shadow: 0 1px 4px rgba(0,0,0,0.05); }
+  .card-header { padding: 18px 24px; background: linear-gradient(135deg, var(--green) 0%, var(--green-mid) 100%); display: flex; align-items: center; justify-content: space-between; }
+  .card-title { font-family: 'DM Serif Display', serif; font-size: 1.15rem; color: white; }
+  .card-sub { font-size: 0.7rem; color: rgba(255,255,255,0.65); margin-top: 3px; }
+  .completion-badge { font-size: 0.7rem; font-weight: 600; padding: 3px 10px; border-radius: 12px; background: rgba(255,255,255,0.2); color: white; white-space: nowrap; }
+  .card-body { padding: 22px; }
+  .goals-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 22px; }
+
+  .section-label { display: flex; align-items: center; gap: 8px; margin-bottom: 11px; }
+  .section-label .icon { width: 26px; height: 26px; border-radius: 7px; display: flex; align-items: center; justify-content: center; font-size: 12px; }
+  .org-icon { background: var(--green-light); } .pers-icon { background: var(--gold-light); }
+  .section-label strong { font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; }
+  .section-label span { font-size: 0.7rem; color: var(--muted); }
+
+  /* GOAL BLOCK */
+  .goal-block { margin-bottom: 12px; border: 1px solid var(--border); border-radius: 9px; overflow: hidden; background: #fafafa; }
+  .goal-block.completed { border-color: var(--green); background: #f0faf4; }
+  .goal-block-header { display: flex; align-items: flex-start; gap: 8px; padding: 11px 12px 9px; background: white; }
+  .goal-block.completed .goal-block-header { background: #f0faf4; }
+
+  .complete-btn { flex-shrink: 0; margin-top: 6px; width: 28px; height: 28px; border-radius: 50%; border: 2px solid var(--border); background: white; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 13px; transition: all 0.2s; color: transparent; }
+  .complete-btn:hover { border-color: var(--green); background: var(--green-light); color: var(--green); }
+  .complete-btn.done { border-color: var(--green); background: var(--green); color: white; }
+  .complete-btn.done:hover { background: var(--red); border-color: var(--red); }
+
+  .goal-num { width: 20px; height: 20px; border-radius: 50%; background: var(--green-light); color: var(--green); font-size: 0.65rem; font-weight: 700; display: flex; align-items: center; justify-content: center; flex-shrink: 0; margin-top: 8px; }
+  .goal-num.done { background: var(--green); color: white; }
+  .goal-num.personal { background: var(--gold-light); color: var(--gold); }
+
+  .goal-input { flex: 1; border: 1.5px solid var(--border); border-radius: 7px; padding: 7px 10px; font-family: 'DM Sans', sans-serif; font-size: 0.8rem; color: var(--ink); resize: none; outline: none; transition: border-color 0.15s; background: #fafafa; min-height: 56px; line-height: 1.5; }
+  .goal-input:focus { border-color: var(--green); background: white; }
+  .goal-input.done-text { color: var(--muted); text-decoration: line-through; background: #f0faf4; border-color: var(--green-light); }
+
+  .completed-stamp { padding: 0 12px 7px; font-size: 0.7rem; font-weight: 700; color: var(--green); text-transform: uppercase; letter-spacing: 0.06em; display: flex; align-items: center; gap: 5px; }
+
+  /* ACTION BAR */
+  .action-bar { padding: 7px 12px 9px; background: #fafafa; border-top: 1px solid var(--border); display: flex; align-items: center; gap: 7px; flex-wrap: wrap; }
+  .goal-block.completed .action-bar { background: #f0faf4; }
+  .action-btn { display: inline-flex; align-items: center; gap: 4px; padding: 4px 10px; border-radius: 5px; border: 1.5px solid var(--border); background: white; font-size: 0.7rem; font-weight: 600; cursor: pointer; font-family: 'DM Sans', sans-serif; color: var(--green); transition: all 0.15s; text-transform: uppercase; letter-spacing: 0.04em; white-space: nowrap; }
+  .action-btn:hover { background: var(--green-light); border-color: var(--green); }
+
+  /* UPDATE PANEL */
+  .update-panel { display: none; border-top: 1px solid var(--border); background: white; padding: 14px 12px; }
+  .update-panel.open { display: block; }
+  .new-update-form { background: var(--green-light); border-radius: 7px; padding: 12px; margin-bottom: 12px; }
+  .form-title { font-size: 0.72rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.07em; color: var(--green); margin-bottom: 9px; }
+  .form-row { display: flex; gap: 8px; margin-bottom: 8px; align-items: flex-start; }
+  .form-row label { font-size: 0.7rem; font-weight: 600; color: var(--ink); white-space: nowrap; padding-top: 7px; min-width: 44px; }
+  .date-input { border: 1.5px solid var(--border); border-radius: 5px; padding: 5px 8px; font-family: 'DM Sans', sans-serif; font-size: 0.77rem; outline: none; background: white; transition: border-color 0.15s; }
+  .date-input:focus { border-color: var(--green); }
+  .update-textarea { flex: 1; border: 1.5px solid var(--border); border-radius: 5px; padding: 7px 9px; font-family: 'DM Sans', sans-serif; font-size: 0.78rem; resize: none; outline: none; background: white; min-height: 64px; line-height: 1.5; transition: border-color 0.15s; }
+  .update-textarea:focus { border-color: var(--green); }
+  .form-actions { display: flex; align-items: center; gap: 7px; flex-wrap: wrap; }
+  .flag-btn { display: flex; align-items: center; gap: 5px; font-size: 0.72rem; font-weight: 500; cursor: pointer; padding: 4px 9px; border-radius: 5px; border: 1.5px solid var(--border); background: white; transition: all 0.15s; font-family: 'DM Sans', sans-serif; }
+  .flag-btn.b:hover, .flag-btn.b.on { border-color: var(--red); background: var(--red-light); color: var(--red); font-weight: 700; }
+  .flag-btn.c:hover, .flag-btn.c.on { border-color: var(--blue); background: var(--blue-light); color: var(--blue); font-weight: 700; }
+  .save-upd-btn { margin-left: auto; padding: 5px 14px; background: var(--green); color: white; border: none; border-radius: 5px; font-size: 0.72rem; font-weight: 700; cursor: pointer; font-family: 'DM Sans', sans-serif; text-transform: uppercase; letter-spacing: 0.05em; transition: background 0.15s; white-space: nowrap; }
+  .save-upd-btn:hover { background: var(--green-mid); }
+
+  /* ENTRIES */
+  .updates-log { display: flex; flex-direction: column; gap: 7px; }
+  .update-entry { border: 1px solid var(--border); border-radius: 7px; padding: 9px 10px; background: #fafafa; position: relative; }
+  .update-entry.hb { border-left: 3px solid var(--red); }
+  .update-entry.hc:not(.hb) { border-left: 3px solid var(--blue); }
+  .update-meta { display: flex; align-items: center; gap: 7px; margin-bottom: 5px; flex-wrap: wrap; }
+  .update-date-lbl { font-size: 0.69rem; font-weight: 700; color: var(--green); text-transform: uppercase; letter-spacing: 0.05em; }
+  .update-text { font-size: 0.78rem; color: var(--ink); line-height: 1.5; padding-right: 22px; }
+  .del-btn { position: absolute; top: 7px; right: 7px; background: none; border: none; cursor: pointer; color: var(--border); font-size: 13px; transition: color 0.15s; }
+  .del-btn:hover { color: var(--red); }
+  .no-updates { font-size: 0.75rem; color: var(--muted); font-style: italic; }
+
+  /* PERS BLOCK */
+  .pers-block { margin-bottom: 12px; border: 1px solid var(--border); border-radius: 9px; overflow: hidden; background: white; }
+  .pers-block-inner { display: flex; align-items: flex-start; gap: 8px; padding: 11px 12px; }
+
+  .add-btn { display: inline-flex; align-items: center; gap: 4px; background: none; border: 1.5px dashed var(--border); border-radius: 7px; padding: 6px 12px; font-size: 0.73rem; color: var(--muted); cursor: pointer; font-family: 'DM Sans', sans-serif; font-weight: 500; transition: all 0.15s; margin-top: 3px; width: 100%; justify-content: center; }
+  .add-btn:hover { border-color: var(--green); color: var(--green); background: var(--green-light); }
+
+  .toast { position: fixed; bottom: 20px; right: 20px; background: var(--green); color: white; padding: 10px 18px; border-radius: 7px; font-size: 0.8rem; font-weight: 500; opacity: 0; transform: translateY(8px); transition: all 0.25s; pointer-events: none; z-index: 9999; max-width: 320px; }
+  .toast.show { opacity: 1; transform: translateY(0); }
+
+  @media (max-width: 768px) {
+    .header, .ws-bar, .nav-tabs, .main { padding-left: 16px; padding-right: 16px; }
+    .goals-grid { grid-template-columns: 1fr; }
+    .overview-grid { grid-template-columns: 1fr 1fr; }
+    .header-left h1 { font-size: 1.2rem; }
+    .header-right .save-status { display: none; }
+  }
+  @media (max-width: 480px) {
+    .overview-grid { grid-template-columns: 1fr; }
+    .login-card { width: 95vw; padding: 32px 24px; }
+  }
+</style>
+</head>
+<body>
+
+<div id="app">
+  <div class="loading-wrap"><div class="spinner"></div><div class="loading-text">Loading...</div></div>
+</div>
+<div class="toast" id="toast"></div>
+
+<!-- Firebase SDK -->
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getFirestore, doc, getDoc, setDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+// ── Firebase config ───────────────────────────────────────────
+const firebaseConfig = {
+  apiKey: "AIzaSyDoLFVigTTCjSucklWcQqCVZraPpJC7BRU",
+  authDomain: "ltf-goals.firebaseapp.com",
+  projectId: "ltf-goals",
+  storageBucket: "ltf-goals.firebasestorage.app",
+  messagingSenderId: "919532329045",
+  appId: "1:919532329045:web:302a8bc8f5981d900c9cdc"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+const DOC_REF = doc(db, "goals", "shared");
+
+// ── Constants ─────────────────────────────────────────────────
+const PASSWORD = 'livelaughltf';
+const SESSION_KEY = 'ltf_authed_v1';
+
+const POSITIONS = [
+  { id:'CEO', title:'CEO', workstreams:['ws1'], wsLabels:['Leadership'] },
+  { id:'COO', title:'COO', workstreams:['ws1','ws3'], wsLabels:['Leadership','Chapter Infra'] },
+  { id:'CFO', title:'CFO', workstreams:['ws1'], wsLabels:['Leadership'] },
+  { id:'SVP_Mentorship', title:'SVP of Mentorship', workstreams:['ws1','ws2'], wsLabels:['Leadership','Mentorship'] },
+  { id:'SVP_Marketing', title:'SVP of Marketing', workstreams:['ws1','ws2'], wsLabels:['Leadership','Mentorship'] },
+  { id:'SVP_Technology', title:'SVP of Technology', workstreams:['ws1','ws2'], wsLabels:['Leadership','Mentorship'] },
+  { id:'SVP_Legal', title:'SVP of Legal Affairs', workstreams:['ws1'], wsLabels:['Leadership'] },
+  { id:'SVP_Chapter', title:'SVP of Chapter Relations', workstreams:['ws1','ws3'], wsLabels:['Leadership','Chapter Infra'] },
+  { id:'SVP_Data', title:'SVP of Data Analytics', workstreams:['ws1','ws2','ws3'], wsLabels:['Leadership','Mentorship','Chapter Infra'] }
+];
+const WS_NAMES = { ws1:'Leadership Support & Development', ws2:'Summer Mentorship Platform', ws3:'Chapter Infrastructure' };
+
+// ── State ─────────────────────────────────────────────────────
+let state = {
+  authed: false,
+  loading: true,
+  saving: false,
+  lastSaved: null,
+  view: 'overview',
+  currentPos: null,
+  wsFilter: 'all',
+  goals: {},
+  drafts: {},
+  loginError: ''
+};
+
+// ── Firebase helpers ──────────────────────────────────────────
+async function loadFromFirebase() {
+  try {
+    const snap = await getDoc(DOC_REF);
+    if (snap.exists()) return snap.data().goals || null;
+  } catch(e) { console.error('Load error:', e); }
+  return null;
+}
+
+let saveTimer = null;
+function scheduleSave() {
+  state.saving = true;
+  updateSaveStatus();
+  clearTimeout(saveTimer);
+  saveTimer = setTimeout(async () => {
+    try {
+      await setDoc(DOC_REF, { goals: state.goals, updatedAt: new Date().toISOString() });
+      state.saving = false;
+      state.lastSaved = new Date();
+    } catch(e) {
+      console.error('Save error:', e);
+      state.saving = false;
+      showToast('⚠ Save failed — check connection.');
+    }
+    updateSaveStatus();
+  }, 1200);
+}
+
+function updateSaveStatus() {
+  const el = document.getElementById('save-status');
+  if (!el) return;
+  if (state.saving) { el.textContent = '⟳ Saving...'; return; }
+  if (state.lastSaved) el.textContent = '✓ Saved ' + state.lastSaved.toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'});
+}
+
+// ── Data helpers ──────────────────────────────────────────────
+function defaultGoals() {
+  const g = {};
+  POSITIONS.forEach(p => {
+    g[p.id] = { org: [{text:'',completed:false,updates:[]},{text:'',completed:false,updates:[]}], pers: [{text:''},{text:''}] };
+  });
+  return g;
+}
+
+function migrateGoals(raw) {
+  const g = raw ? JSON.parse(JSON.stringify(raw)) : {};
+  POSITIONS.forEach(p => {
+    if (!g[p.id]) g[p.id] = { org: [{text:'',completed:false,updates:[]},{text:'',completed:false,updates:[]}], pers: [{text:''},{text:''}] };
+    g[p.id].org = (g[p.id].org || []).map(x => typeof x === 'string'
+      ? {text:x,completed:false,updates:[]}
+      : {text:x.text||'',completed:x.completed||false,updates:x.updates||[]});
+    g[p.id].pers = (g[p.id].pers || []).map(x => typeof x === 'string' ? {text:x} : {text:x.text||''});
+  });
+  return g;
+}
+
+function getDraft(posId, idx) {
+  if (!state.drafts[posId]) state.drafts[posId] = {};
+  if (!state.drafts[posId][idx]) state.drafts[posId][idx] = { date: todayStr(), text:'', blocker:false, checkin:false };
+  return state.drafts[posId][idx];
+}
+
+function getCompletion(posId) {
+  const g = state.goals[posId];
+  if (!g || !g.org.length) return { completed:0, total:0, pct:0 };
+  const completed = g.org.filter(x => x.completed).length;
+  const total = g.org.length;
+  return { completed, total, pct: Math.round(completed/total*100) };
+}
+
+function hasBlockers(posId) { return state.goals[posId]?.org.some(g => g.updates?.some(u => u.blocker)); }
+function hasCheckins(posId) { return state.goals[posId]?.org.some(g => g.updates?.some(u => u.checkin)); }
+function todayStr() { return new Date().toISOString().slice(0,10); }
+function fmtDate(s) {
+  if (!s) return '';
+  const [y,m,d] = s.split('-');
+  return ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][parseInt(m)-1]+' '+parseInt(d)+', '+y;
+}
+function esc(s) {
+  if (!s) return '';
+  return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+// ── Auth ──────────────────────────────────────────────────────
+window.tryLogin = function() {
+  const pw = document.getElementById('pw-input').value;
+  if (pw === PASSWORD) {
+    try { sessionStorage.setItem(SESSION_KEY, '1'); } catch(e) {}
+    state.authed = true;
+    state.loginError = '';
+    render();
+  } else {
+    state.loginError = 'Incorrect password. Please try again.';
+    render();
+    setTimeout(() => { const el = document.getElementById('pw-input'); if(el){el.value='';el.focus();} }, 50);
+  }
+};
+
+window.logout = function() {
+  try { sessionStorage.removeItem(SESSION_KEY); } catch(e) {}
+  state.authed = false;
+  render();
+};
+
+// ── Actions ───────────────────────────────────────────────────
+window.setView = function(view, pos) {
+  state.view = view;
+  state.currentPos = pos || null;
+  render();
+  window.scrollTo(0,0);
+};
+
+window.setFilter = function(f) { state.wsFilter = f; render(); };
+
+window.updateGoalText = function(type, posId, idx, val) {
+  state.goals[posId][type][idx].text = val;
+  scheduleSave();
+};
+
+window.toggleComplete = function(posId, idx) {
+  state.goals[posId].org[idx].completed = !state.goals[posId].org[idx].completed;
+  const done = state.goals[posId].org[idx].completed;
+  showToast(done ? '✓ Goal marked complete!' : 'Goal marked in progress.');
+  scheduleSave();
+  render();
+};
+
+window.togglePanel = function(id) {
+  const el = document.getElementById(id);
+  if (el) el.classList.toggle('open');
+};
+
+window.updateDraftDate = function(posId, idx, val) { getDraft(posId, idx).date = val; };
+window.updateDraftText = function(posId, idx, val) { getDraft(posId, idx).text = val; };
+
+window.toggleFlag = function(posId, idx, field) {
+  const d = getDraft(posId, idx);
+  d[field] = !d[field];
+  const id = field === 'blocker' ? `fb-${posId}-${idx}` : `fc-${posId}-${idx}`;
+  const el = document.getElementById(id);
+  if (el) el.classList.toggle('on', d[field]);
+};
+
+window.saveUpdate = function(posId, idx) {
+  const d = getDraft(posId, idx);
+  const textEl = document.getElementById(`ut-${posId}-${idx}`);
+  const dateEl = document.getElementById(`ud-${posId}-${idx}`);
+  if (textEl) d.text = textEl.value;
+  if (dateEl) d.date = dateEl.value;
+  if (!d.text.trim()) { showToast('⚠ Please enter update text.'); return; }
+  if (!state.goals[posId].org[idx].updates) state.goals[posId].org[idx].updates = [];
+  state.goals[posId].org[idx].updates.unshift({ date: d.date, text: d.text, blocker: d.blocker, checkin: d.checkin });
+  const msg = d.blocker && d.checkin ? '🚨📅 Saved — blocker flagged & check-in requested!'
+    : d.blocker ? '🚨 Saved — blocker flagged for CEO!'
+    : d.checkin ? '📅 Saved — check-in requested!'
+    : '✓ Update saved!';
+  state.drafts[posId][idx] = { date: todayStr(), text:'', blocker:false, checkin:false };
+  scheduleSave();
+  showToast(msg);
+  render();
+  setTimeout(() => {
+    const panel = document.getElementById(`panel-${posId}-${idx}`);
+    if (panel) panel.classList.add('open');
+  }, 40);
+};
+
+window.deleteUpdate = function(posId, gIdx, uIdx) {
+  state.goals[posId].org[gIdx].updates.splice(uIdx, 1);
+  scheduleSave();
+  showToast('Update removed.');
+  render();
+  setTimeout(() => {
+    const panel = document.getElementById(`panel-${posId}-${gIdx}`);
+    if (panel) panel.classList.add('open');
+  }, 40);
+};
+
+window.addGoal = function(type, posId) {
+  if (type === 'org') state.goals[posId].org.push({text:'',completed:false,updates:[]});
+  else state.goals[posId].pers.push({text:''});
+  scheduleSave();
+  render();
+  setTimeout(() => {
+    const listId = type==='org' ? `orgList-${posId}` : `persList-${posId}`;
+    const list = document.getElementById(listId);
+    if (list) { const tas = list.querySelectorAll('textarea'); if (tas.length) tas[tas.length-1].focus(); }
+  }, 50);
+};
+
+window.exportGoals = function() {
+  let text = 'PROJECT LEVEL THE FIELD — SUMMER GOALS & UPDATES\n====================================================\n\n';
+  POSITIONS.forEach(p => {
+    const g = state.goals[p.id] || { org:[], pers:[] };
+    const { completed, total } = getCompletion(p.id);
+    text += `${p.title.toUpperCase()}\nWorkstreams: ${p.workstreams.map(w=>WS_NAMES[w]).join(', ')}\nOrg Goals: ${completed}/${total} complete\n\nORGANIZATIONAL GOALS:\n`;
+    g.org.forEach((gl,i) => {
+      if (gl.text?.trim()) {
+        text += `  ${i+1}. [${gl.completed?'COMPLETE':'IN PROGRESS'}] ${gl.text}\n`;
+        (gl.updates||[]).forEach(u => { text += `     [${fmtDate(u.date)}] ${u.text}${u.blocker?' ⚠ BLOCKER':''}${u.checkin?' 📅 CHECK-IN':''}\n`; });
+      }
+    });
+    text += '\nPERSONAL GOALS:\n';
+    g.pers.forEach((gl,i) => { if (gl.text?.trim()) text += `  ${i+1}. ${gl.text}\n`; });
+    text += '\n' + '-'.repeat(50) + '\n\n';
+  });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([text], {type:'text/plain'}));
+  a.download = 'PLTF_Summer_Goals.txt';
+  a.click();
+  showToast('⬇ Exported!');
+};
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 3200);
+}
+
+// ── Render ────────────────────────────────────────────────────
+function render() {
+  const appEl = document.getElementById('app');
+
+  if (state.loading) {
+    appEl.innerHTML = `<div class="loading-wrap"><div class="spinner"></div><div class="loading-text">Loading goals...</div></div>`;
+    return;
+  }
+
+  if (!state.authed) {
+    appEl.innerHTML = `
+    <div class="login-wrap">
+      <div class="login-card">
+        <div class="login-logo">Project Level The Field</div>
+        <div class="login-sub">Summer Goal-Setting Portal</div>
+        ${state.loginError ? `<div class="login-error">${esc(state.loginError)}</div>` : ''}
+        <label class="login-label" for="pw-input">Password</label>
+        <input class="login-input" id="pw-input" type="password" placeholder="Enter password…" onkeydown="if(event.key==='Enter')tryLogin()">
+        <button class="login-btn" onclick="tryLogin()">Enter →</button>
+      </div>
+    </div>`;
+    setTimeout(() => { const el = document.getElementById('pw-input'); if(el) el.focus(); }, 50);
+    return;
+  }
+
+  const tabs = POSITIONS.map(p =>
+    `<div class="tab ${state.view==='position'&&state.currentPos===p.id?'active':''}" onclick="setView('position','${p.id}')">${p.title}</div>`
+  ).join('');
+
+  appEl.innerHTML = `
+  <div class="header">
+    <div class="header-left">
+      <h1>Project Level The Field</h1>
+      <p>Summer Goal-Setting Portal — CEO Dashboard</p>
+    </div>
+    <div class="header-right">
+      <span class="save-status" id="save-status">${state.lastSaved ? '✓ Saved' : 'Auto-saves as you type'}</span>
+      <button class="btn btn-ghost" onclick="exportGoals()">⬇ Export</button>
+      <button class="btn btn-ghost" onclick="logout()">Sign Out</button>
+    </div>
+  </div>
+  <div class="ws-bar">
+    <span class="ws-bar-label">Workstreams:</span>
+    <span class="ws-pill ws1"><span class="ws-dot"></span>Leadership Support & Development</span>
+    <span class="ws-pill ws2"><span class="ws-dot"></span>Summer Mentorship Platform</span>
+    <span class="ws-pill ws3"><span class="ws-dot"></span>Chapter Infrastructure</span>
+  </div>
+  <div class="nav-tabs">
+    <div class="tab ${state.view==='overview'?'active':''}" onclick="setView('overview')">Overview</div>
+    ${tabs}
+  </div>
+  <div class="main" id="mainContent"></div>`;
+
+  const main = document.getElementById('mainContent');
+  if (state.view === 'overview') renderOverview(main);
+  else renderPosition(main, state.currentPos);
+}
+
+function renderOverview(main) {
+  const filtered = state.wsFilter === 'all' ? POSITIONS : POSITIONS.filter(p => p.workstreams.includes(state.wsFilter));
+  let html = `<div class="ws-filter-bar">
+    <button class="ws-filter-btn ${state.wsFilter==='all'?'active-all':''}" onclick="setFilter('all')">All</button>
+    <button class="ws-filter-btn ${state.wsFilter==='ws1'?'active-ws1':''}" onclick="setFilter('ws1')">Leadership</button>
+    <button class="ws-filter-btn ${state.wsFilter==='ws2'?'active-ws2':''}" onclick="setFilter('ws2')">Mentorship</button>
+    <button class="ws-filter-btn ${state.wsFilter==='ws3'?'active-ws3':''}" onclick="setFilter('ws3')">Chapter Infra</button>
+  </div><div class="overview-grid">`;
+
+  filtered.forEach(p => {
+    const {completed,total,pct} = getCompletion(p.id);
+    const allDone = total > 0 && completed === total;
+    const blk = hasBlockers(p.id), chk = hasCheckins(p.id);
+    const tags = p.workstreams.map((w,i) => `<span class="ws-pill ${w}" style="font-size:0.63rem;padding:2px 7px">${p.wsLabels[i]}</span>`).join('');
+    html += `<div class="overview-card" onclick="setView('position','${p.id}')">
+      <div class="overview-card-title">${p.title}</div>
+      <div style="margin-bottom:10px">
+        <div class="progress-label"><span>Org goals complete</span><span style="font-weight:700;color:${allDone?'var(--green)':'var(--muted)'}">${completed}/${total}</span></div>
+        <div class="progress-bar"><div class="progress-fill ${allDone?'all-done':''}" style="width:${pct}%"></div></div>
+      </div>
+      <div style="display:flex;flex-wrap:wrap;gap:4px">${tags}</div>
+      <div style="display:flex;gap:4px;flex-wrap:wrap;margin-top:8px">
+        ${allDone&&total>0?'<span class="badge badge-green">✓ All Complete</span>':''}
+        ${blk?'<span class="badge badge-red">🚨 Blocker</span>':''}
+        ${chk?'<span class="badge badge-blue">📅 Check-in</span>':''}
+      </div>
+    </div>`;
+  });
+  html += '</div>';
+  main.innerHTML = html;
+}
+
+function renderPosition(main, posId) {
+  const pos = POSITIONS.find(p => p.id === posId);
+  if (!pos) { setView('overview'); return; }
+  const g = state.goals[posId];
+  const {completed,total} = getCompletion(posId);
+  const wsTags = pos.workstreams.map((w,i) =>
+    `<span style="font-size:0.68rem;font-weight:600;padding:3px 9px;border-radius:11px;background:rgba(255,255,255,0.2);color:white;text-transform:uppercase;letter-spacing:0.05em">${WS_NAMES[w]}</span>`
+  ).join(' ');
+
+  const orgHTML = g.org.map((gl,i) => renderOrgBlock(posId,i,gl)).join('');
+  const persHTML = g.pers.map((gl,i) => renderPersBlock(posId,i,gl)).join('');
+
+  main.innerHTML = `
+  <div class="position-card">
+    <div class="card-header">
+      <div>
+        <div class="card-title">${pos.title}</div>
+        <div style="margin-top:7px;display:flex;gap:5px;flex-wrap:wrap">${wsTags}</div>
+      </div>
+      <div style="text-align:right">
+        <div class="completion-badge">✓ ${completed}/${total} org goals complete</div>
+        <div class="card-sub" style="margin-top:5px">Click ○ to mark a goal complete</div>
+      </div>
+    </div>
+    <div class="card-body">
+      <div class="goals-grid">
+        <div>
+          <div class="section-label">
+            <div class="icon org-icon">🏢</div>
+            <div><strong>Organizational Goals</strong><br><span>Impact on PLTF mission & workstreams</span></div>
+          </div>
+          <div id="orgList-${posId}">${orgHTML}</div>
+          <button class="add-btn" onclick="addGoal('org','${posId}')">+ Add organizational goal</button>
+        </div>
+        <div>
+          <div class="section-label">
+            <div class="icon pers-icon">🌱</div>
+            <div><strong>Personal Goals</strong><br><span>Growth & development for this leader</span></div>
+          </div>
+          <div id="persList-${posId}">${persHTML}</div>
+          <button class="add-btn" onclick="addGoal('pers','${posId}')">+ Add personal goal</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:-10px">
+    <button class="btn" style="color:var(--muted);border:1.5px solid var(--border);background:white;font-family:'DM Sans',sans-serif" onclick="setView('overview')">← Overview</button>
+  </div>`;
+}
+
+function renderOrgBlock(posId, idx, goal) {
+  const updates = goal.updates || [];
+  const bc = updates.filter(u=>u.blocker).length;
+  const cc = updates.filter(u=>u.checkin).length;
+  const draft = getDraft(posId, idx);
+  const panelId = `panel-${posId}-${idx}`;
+  const done = goal.completed;
+
+  const entries = updates.length === 0
+    ? `<div class="no-updates">No updates yet.</div>`
+    : updates.map((u,ui) => `
+      <div class="update-entry ${u.blocker?'hb':''} ${u.checkin?'hc':''}">
+        <button class="del-btn" onclick="deleteUpdate('${posId}',${idx},${ui})">✕</button>
+        <div class="update-meta">
+          <span class="update-date-lbl">📅 ${fmtDate(u.date)}</span>
+          ${u.blocker?'<span class="badge badge-red">🚨 Blocker</span>':''}
+          ${u.checkin?'<span class="badge badge-blue">📅 Check-in</span>':''}
+        </div>
+        <div class="update-text">${esc(u.text)}</div>
+      </div>`).join('');
+
+  return `
+  <div class="goal-block ${done?'completed':''}" id="block-${posId}-${idx}">
+    <div class="goal-block-header">
+      <button class="complete-btn ${done?'done':''}" onclick="toggleComplete('${posId}',${idx})" title="${done?'Mark incomplete':'Mark complete'}">✓</button>
+      <div class="goal-num ${done?'done':''}">${idx+1}</div>
+      <textarea class="goal-input ${done?'done-text':''}" placeholder="e.g., Ensure onboarding guide is completed…"
+        oninput="updateGoalText('org','${posId}',${idx},this.value)">${esc(goal.text)}</textarea>
+    </div>
+    ${done?`<div class="completed-stamp">✓ Goal Completed</div>`:''}
+    <div class="action-bar">
+      <button class="action-btn" onclick="togglePanel('${panelId}')">📝 Enter Update</button>
+      ${updates.length>0?`<span class="badge badge-green">${updates.length} update${updates.length>1?'s':''}</span>`:''}
+      ${bc>0?`<span class="badge badge-red">🚨 ${bc} Blocker${bc>1?'s':''}</span>`:''}
+      ${cc>0?`<span class="badge badge-blue">📅 Check-in</span>`:''}
+    </div>
+    <div class="update-panel" id="${panelId}">
+      <div class="new-update-form">
+        <div class="form-title">📝 New Weekly Update</div>
+        <div class="form-row">
+          <label>Date</label>
+          <input type="date" class="date-input" id="ud-${posId}-${idx}" value="${draft.date}" oninput="updateDraftDate('${posId}',${idx},this.value)">
+        </div>
+        <div class="form-row">
+          <label>Update</label>
+          <textarea class="update-textarea" id="ut-${posId}-${idx}" placeholder="Summarize progress this week…">${esc(draft.text)}</textarea>
+        </div>
+        <div class="form-actions">
+          <button class="flag-btn b ${draft.blocker?'on':''}" id="fb-${posId}-${idx}" onclick="toggleFlag('${posId}',${idx},'blocker')">🚨 Flag Blocker</button>
+          <button class="flag-btn c ${draft.checkin?'on':''}" id="fc-${posId}-${idx}" onclick="toggleFlag('${posId}',${idx},'checkin')">📅 Request Check-in</button>
+          <button class="save-upd-btn" onclick="saveUpdate('${posId}',${idx})">Save Update</button>
+        </div>
+      </div>
+      <div class="updates-log">${entries}</div>
+    </div>
+  </div>`;
+}
+
+function renderPersBlock(posId, idx, goal) {
+  return `
+  <div class="pers-block">
+    <div class="pers-block-inner">
+      <div class="goal-num personal">${idx+1}</div>
+      <textarea class="goal-input" placeholder="e.g., Develop stakeholder communication skills…"
+        oninput="updateGoalText('pers','${posId}',${idx},this.value)">${esc(goal.text)}</textarea>
+    </div>
+  </div>`;
+}
+
+// ── Init ──────────────────────────────────────────────────────
+async function init() {
+  try { if (sessionStorage.getItem(SESSION_KEY) === '1') state.authed = true; } catch(e) {}
+  render();
+  const saved = await loadFromFirebase();
+  state.goals = migrateGoals(saved);
+  state.loading = false;
+  render();
+}
+
+init();
+</script>
+</body>
+</html>
