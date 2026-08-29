@@ -1,0 +1,1245 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Project Level The Field — Goal Portal</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --green: #1a6b3c; --green-mid: #2d8f55; --green-light: #e8f5ee;
+    --gold: #c8963e; --gold-light: #fdf3e3;
+    --red: #c0392b; --red-light: #fdecea;
+    --blue: #2563ab; --blue-light: #dbeafe;
+    --purple: #7c3aed; --purple-light: #ede9fe;
+    --cream: #faf8f4; --ink: #1c1c1c; --muted: #6b7280;
+    --border: #d6d2ca; --white: #ffffff;
+  }
+  body { font-family: 'DM Sans', sans-serif; background: var(--cream); color: var(--ink); min-height: 100vh; }
+
+  .login-wrap { min-height: 100vh; display: flex; align-items: center; justify-content: center; background: linear-gradient(135deg, #0f3d22 0%, #1a6b3c 60%, #2d8f55 100%); }
+  .login-card { background: white; border-radius: 16px; padding: 48px 40px 40px; width: 400px; box-shadow: 0 24px 64px rgba(0,0,0,0.3); text-align: center; }
+  .login-logo { font-family: 'DM Serif Display', serif; font-size: 1.5rem; color: var(--green); margin-bottom: 4px; }
+  .login-sub { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.1em; color: var(--muted); margin-bottom: 32px; font-weight: 600; }
+  .login-label { display: block; text-align: left; font-size: 0.76rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.07em; color: var(--ink); margin-bottom: 6px; }
+  .login-input { width: 100%; border: 2px solid var(--border); border-radius: 8px; padding: 12px 14px; font-family: 'DM Sans', sans-serif; font-size: 0.92rem; outline: none; transition: border-color 0.15s; margin-bottom: 16px; }
+  .login-input:focus { border-color: var(--green); }
+  .login-btn { width: 100%; background: var(--green); color: white; border: none; border-radius: 8px; padding: 13px; font-family: 'DM Sans', sans-serif; font-size: 0.9rem; font-weight: 700; cursor: pointer; text-transform: uppercase; letter-spacing: 0.08em; transition: background 0.15s; margin-top: 4px; }
+  .login-btn:hover { background: var(--green-mid); }
+  .login-btn:disabled { background: var(--border); cursor: wait; }
+  .login-error { background: var(--red-light); color: var(--red); border-radius: 6px; padding: 9px 12px; font-size: 0.78rem; font-weight: 600; margin-bottom: 16px; }
+  .login-note { font-size: 0.72rem; color: var(--muted); margin-top: 16px; line-height: 1.5; }
+
+  .loading-wrap { min-height: 100vh; display: flex; align-items: center; justify-content: center; flex-direction: column; gap: 16px; background: var(--cream); }
+  .spinner { width: 38px; height: 38px; border: 3px solid var(--green-light); border-top-color: var(--green); border-radius: 50%; animation: spin 0.7s linear infinite; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .loading-text { font-size: 0.84rem; color: var(--muted); font-weight: 500; }
+
+  .header { background: var(--green); color: white; padding: 20px 40px 18px; display: flex; align-items: center; justify-content: space-between; gap: 16px; position: sticky; top: 0; z-index: 100; box-shadow: 0 2px 12px rgba(0,0,0,0.15); }
+  .header-left h1 { font-family: 'DM Serif Display', serif; font-size: 1.5rem; letter-spacing: -0.01em; line-height: 1.1; }
+  .header-left p { font-size: 0.72rem; opacity: 0.7; margin-top: 3px; text-transform: uppercase; letter-spacing: 0.09em; font-weight: 500; }
+  .header-right { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; justify-content: flex-end; }
+  .save-status { font-size: 0.72rem; color: rgba(255,255,255,0.65); font-weight: 500; white-space: nowrap; }
+  .btn { display: inline-flex; align-items: center; gap: 6px; padding: 7px 14px; border-radius: 6px; font-size: 0.76rem; font-weight: 600; cursor: pointer; border: none; transition: all 0.18s; font-family: 'DM Sans', sans-serif; text-transform: uppercase; letter-spacing: 0.05em; }
+  .btn-ghost { background: rgba(255,255,255,0.15); color: white; border: 1.5px solid rgba(255,255,255,0.3); }
+  .btn-ghost:hover { background: rgba(255,255,255,0.25); }
+  .btn-gold { background: var(--gold); color: white; }
+  .btn-gold:hover { background: #b8842e; }
+
+  .term-bar { background: #12522d; padding: 8px 40px; display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+  .term-bar-label { font-size: 0.68rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; color: rgba(255,255,255,0.6); }
+  .term-select { background: rgba(255,255,255,0.12); color: white; border: 1.5px solid rgba(255,255,255,0.25); border-radius: 6px; padding: 4px 10px; font-family: 'DM Sans', sans-serif; font-size: 0.76rem; font-weight: 600; cursor: pointer; outline: none; }
+  .term-select option { color: var(--ink); }
+  .term-current-pill { font-size: 0.68rem; font-weight: 700; background: var(--gold); color: white; padding: 2px 9px; border-radius: 10px; text-transform: uppercase; letter-spacing: 0.05em; }
+  .term-archive-pill { font-size: 0.68rem; font-weight: 700; background: rgba(255,255,255,0.2); color: white; padding: 2px 9px; border-radius: 10px; text-transform: uppercase; letter-spacing: 0.05em; }
+
+  .ws-bar { background: white; border-bottom: 1px solid var(--border); padding: 0 40px; display: flex; align-items: center; gap: 14px; flex-wrap: wrap; min-height: 44px; }
+  .ws-bar-label { font-size: 0.7rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; color: var(--muted); padding: 12px 0; white-space: nowrap; }
+  .ws-pill { display: inline-flex; align-items: center; gap: 6px; font-size: 0.72rem; font-weight: 500; padding: 4px 10px; border-radius: 20px; }
+  .ws-dot { width: 7px; height: 7px; border-radius: 50%; }
+  .ws-edit-btn { background: none; border: 1.5px dashed var(--border); border-radius: 20px; padding: 3px 12px; font-size: 0.7rem; font-weight: 600; color: var(--muted); cursor: pointer; font-family: 'DM Sans', sans-serif; transition: all 0.15s; }
+  .ws-edit-btn:hover { border-color: var(--green); color: var(--green); background: var(--green-light); }
+
+  .nav-tabs { background: white; border-bottom: 2px solid var(--border); padding: 0 40px; display: flex; gap: 2px; overflow-x: auto; position: sticky; top: 77px; z-index: 99; }
+  .tab { padding: 13px 15px 11px; font-size: 0.77rem; font-weight: 500; color: var(--muted); cursor: pointer; border-bottom: 3px solid transparent; margin-bottom: -2px; white-space: nowrap; transition: all 0.15s; flex-shrink: 0; }
+  .tab:hover { color: var(--green); }
+  .tab.active { color: var(--green); border-color: var(--green); font-weight: 700; }
+  .tab .me-dot { display:inline-block; width:6px; height:6px; border-radius:50%; background: var(--gold); margin-left: 4px; vertical-align: middle; }
+
+  .page-wrap { display: flex; align-items: flex-start; }
+  .main { padding: 28px 32px; flex: 1; min-width: 0; }
+
+  .sidebar { width: 240px; flex-shrink: 0; padding: 24px 20px; border-left: 1px solid var(--border); min-height: calc(100vh - 130px); position: sticky; top: 130px; background: white; }
+  .sidebar-title { font-size: 0.68rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.12em; color: var(--muted); margin-bottom: 14px; padding-bottom: 10px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; }
+  .sidebar-edit-btn { background: none; border: none; font-size: 0.7rem; color: var(--muted); cursor: pointer; font-family: 'DM Sans', sans-serif; font-weight: 600; padding: 2px 6px; border-radius: 4px; }
+  .sidebar-edit-btn:hover { color: var(--green); background: var(--green-light); }
+  .res-card { display: flex; align-items: flex-start; gap: 10px; padding: 11px 12px; border-radius: 9px; border: 1px solid var(--border); margin-bottom: 10px; text-decoration: none; color: var(--ink); transition: all 0.18s; background: var(--cream); }
+  .res-card:hover { border-color: var(--green); background: var(--green-light); transform: translateX(2px); }
+  .res-icon { width: 32px; height: 32px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 15px; flex-shrink: 0; }
+  .res-label { font-size: 0.76rem; font-weight: 600; color: var(--ink); line-height: 1.3; }
+  .res-sub { font-size: 0.68rem; color: var(--muted); margin-top: 2px; }
+  .res-arrow { font-size: 0.7rem; color: var(--muted); margin-left: auto; margin-top: 2px; flex-shrink: 0; }
+  .sidebar-user { margin-top: 20px; padding-top: 16px; border-top: 1px solid var(--border); }
+  .sidebar-user-email { font-size: 0.72rem; color: var(--ink); font-weight: 600; word-break: break-all; }
+  .sidebar-user-role { font-size: 0.68rem; color: var(--muted); margin-top: 2px; }
+
+  .ws-filter-bar { display: flex; gap: 8px; margin-bottom: 20px; flex-wrap: wrap; }
+  .ws-filter-btn { padding: 5px 13px; border-radius: 20px; border: 1.5px solid var(--border); background: white; font-size: 0.72rem; font-weight: 600; cursor: pointer; font-family: 'DM Sans', sans-serif; transition: all 0.15s; text-transform: uppercase; letter-spacing: 0.05em; color: var(--muted); }
+
+  .overview-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 14px; }
+  .overview-card { background: white; border: 1px solid var(--border); border-radius: 10px; padding: 16px; cursor: pointer; transition: all 0.18s; box-shadow: 0 1px 3px rgba(0,0,0,0.04); }
+  .overview-card:hover { border-color: var(--green); transform: translateY(-2px); box-shadow: 0 4px 16px rgba(26,107,60,0.1); }
+  .overview-card-title { font-family: 'DM Serif Display', serif; font-size: 0.95rem; color: var(--ink); }
+  .progress-label { display: flex; justify-content: space-between; font-size: 0.68rem; color: var(--muted); margin-bottom: 4px; }
+  .progress-bar { height: 6px; background: var(--green-light); border-radius: 3px; overflow: hidden; }
+  .progress-fill { height: 100%; background: linear-gradient(90deg, var(--green), var(--green-mid)); border-radius: 3px; transition: width 0.4s ease; }
+  .progress-fill.all-done { background: linear-gradient(90deg, #15803d, #22c55e); }
+  .badge { font-size: 0.66rem; font-weight: 700; padding: 2px 7px; border-radius: 10px; }
+  .badge-green { background: var(--green-light); color: var(--green); }
+  .badge-red { background: var(--red-light); color: var(--red); }
+  .badge-blue { background: var(--blue-light); color: var(--blue); }
+  .badge-gold { background: var(--gold-light); color: #8a6420; }
+
+  .position-card { background: white; border: 1px solid var(--border); border-radius: 12px; overflow: hidden; margin-bottom: 24px; box-shadow: 0 1px 4px rgba(0,0,0,0.05); }
+  .card-header { padding: 18px 24px; background: linear-gradient(135deg, var(--green) 0%, var(--green-mid) 100%); display: flex; align-items: center; justify-content: space-between; }
+  .card-title { font-family: 'DM Serif Display', serif; font-size: 1.15rem; color: white; }
+  .card-sub { font-size: 0.7rem; color: rgba(255,255,255,0.65); margin-top: 3px; }
+  .completion-badge { font-size: 0.7rem; font-weight: 600; padding: 3px 10px; border-radius: 12px; background: rgba(255,255,255,0.2); color: white; white-space: nowrap; }
+  .card-body { padding: 22px; }
+  .goals-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 22px; }
+
+  .pos-ws-assign { background: #f6faf7; border: 1px solid var(--border); border-radius: 9px; padding: 12px 14px; margin-bottom: 18px; }
+  .pos-ws-assign-label { font-size: 0.7rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); margin-bottom: 8px; }
+  .ws-chip { display: inline-flex; align-items: center; gap: 5px; padding: 4px 11px; border-radius: 16px; border: 1.5px solid var(--border); background: white; font-size: 0.72rem; font-weight: 600; cursor: pointer; font-family: 'DM Sans', sans-serif; transition: all 0.13s; margin: 0 6px 6px 0; }
+
+  .section-label { display: flex; align-items: center; gap: 8px; margin-bottom: 11px; }
+  .section-label .icon { width: 26px; height: 26px; border-radius: 7px; display: flex; align-items: center; justify-content: center; font-size: 12px; }
+  .org-icon { background: var(--green-light); } .pers-icon { background: var(--gold-light); }
+  .section-label strong { font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; }
+  .section-label span { font-size: 0.7rem; color: var(--muted); }
+
+  .goal-block { margin-bottom: 12px; border: 1px solid var(--border); border-radius: 9px; overflow: hidden; background: #fafafa; }
+  .goal-block.completed { border-color: var(--green); background: #f0faf4; }
+  .goal-block.met-goal { border-color: var(--gold); background: #fdfaf2; }
+  .goal-block-header { display: flex; align-items: flex-start; gap: 8px; padding: 11px 12px 9px; background: white; }
+  .goal-block.completed .goal-block-header { background: #f0faf4; }
+  .goal-block.met-goal .goal-block-header { background: #fdfaf2; }
+
+  .complete-btn { flex-shrink: 0; margin-top: 6px; width: 28px; height: 28px; border-radius: 50%; border: 2px solid var(--border); background: white; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 13px; transition: all 0.2s; color: transparent; }
+  .complete-btn:hover { border-color: var(--green); background: var(--green-light); color: var(--green); }
+  .complete-btn.done { border-color: var(--green); background: var(--green); color: white; }
+  .complete-btn.done:hover { background: var(--red); border-color: var(--red); }
+  .complete-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+  .goal-num { width: 20px; height: 20px; border-radius: 50%; background: var(--green-light); color: var(--green); font-size: 0.65rem; font-weight: 700; display: flex; align-items: center; justify-content: center; flex-shrink: 0; margin-top: 8px; }
+  .goal-num.done { background: var(--green); color: white; }
+  .goal-num.personal { background: var(--gold-light); color: var(--gold); }
+
+  .goal-input { flex: 1; border: 1.5px solid var(--border); border-radius: 7px; padding: 7px 10px; font-family: 'DM Sans', sans-serif; font-size: 0.8rem; color: var(--ink); resize: none; outline: none; transition: border-color 0.15s; background: #fafafa; min-height: 56px; line-height: 1.5; }
+  .goal-input:focus { border-color: var(--green); background: white; }
+  .goal-input.done-text { color: var(--muted); text-decoration: line-through; background: #f0faf4; border-color: var(--green-light); }
+  .goal-input[readonly] { cursor: default; background: #f6f4ef; color: var(--muted); }
+  .goal-input[readonly]:focus { border-color: var(--border); background: #f6f4ef; }
+
+  .goal-term-tag { display: inline-flex; align-items: center; gap: 4px; font-size: 0.64rem; font-weight: 700; padding: 2px 8px; border-radius: 9px; background: var(--purple-light); color: var(--purple); text-transform: uppercase; letter-spacing: 0.05em; }
+  .goal-carried-tag { display: inline-flex; align-items: center; gap: 4px; font-size: 0.64rem; font-weight: 700; padding: 2px 8px; border-radius: 9px; background: var(--blue-light); color: var(--blue); text-transform: uppercase; letter-spacing: 0.05em; }
+  .completed-stamp { padding: 0 12px 7px; font-size: 0.7rem; font-weight: 700; color: var(--green); text-transform: uppercase; letter-spacing: 0.06em; }
+  .met-stamp { padding: 0 12px 7px; font-size: 0.7rem; font-weight: 700; color: #8a6420; text-transform: uppercase; letter-spacing: 0.06em; }
+
+  .action-bar { padding: 7px 12px 9px; background: #fafafa; border-top: 1px solid var(--border); display: flex; align-items: center; gap: 7px; flex-wrap: wrap; }
+  .goal-block.completed .action-bar { background: #f0faf4; }
+  .goal-block.met-goal .action-bar { background: #fdfaf2; }
+  .action-btn { display: inline-flex; align-items: center; gap: 4px; padding: 4px 10px; border-radius: 5px; border: 1.5px solid var(--border); background: white; font-size: 0.7rem; font-weight: 600; cursor: pointer; font-family: 'DM Sans', sans-serif; color: var(--green); transition: all 0.15s; text-transform: uppercase; letter-spacing: 0.04em; white-space: nowrap; }
+  .action-btn:hover { background: var(--green-light); border-color: var(--green); }
+
+  .update-panel { display: none; border-top: 1px solid var(--border); background: white; padding: 14px 12px; }
+  .update-panel.open { display: block; }
+  .new-update-form { background: var(--green-light); border-radius: 7px; padding: 12px; margin-bottom: 12px; }
+  .form-title { font-size: 0.72rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.07em; color: var(--green); margin-bottom: 9px; }
+  .form-row { display: flex; gap: 8px; margin-bottom: 8px; align-items: flex-start; }
+  .form-row label { font-size: 0.7rem; font-weight: 600; color: var(--ink); white-space: nowrap; padding-top: 7px; min-width: 44px; }
+  .date-input { border: 1.5px solid var(--border); border-radius: 5px; padding: 5px 8px; font-family: 'DM Sans', sans-serif; font-size: 0.77rem; outline: none; background: white; transition: border-color 0.15s; }
+  .date-input:focus { border-color: var(--green); }
+  .update-textarea { flex: 1; border: 1.5px solid var(--border); border-radius: 5px; padding: 7px 9px; font-family: 'DM Sans', sans-serif; font-size: 0.78rem; resize: none; outline: none; background: white; min-height: 64px; line-height: 1.5; transition: border-color 0.15s; }
+  .update-textarea:focus { border-color: var(--green); }
+  .form-actions { display: flex; align-items: center; gap: 7px; flex-wrap: wrap; }
+  .flag-btn { display: flex; align-items: center; gap: 5px; font-size: 0.72rem; font-weight: 500; cursor: pointer; padding: 4px 9px; border-radius: 5px; border: 1.5px solid var(--border); background: white; transition: all 0.15s; font-family: 'DM Sans', sans-serif; }
+  .flag-btn.b:hover, .flag-btn.b.on { border-color: var(--red); background: var(--red-light); color: var(--red); font-weight: 700; }
+  .flag-btn.c:hover, .flag-btn.c.on { border-color: var(--blue); background: var(--blue-light); color: var(--blue); font-weight: 700; }
+  .save-upd-btn { margin-left: auto; padding: 5px 14px; background: var(--green); color: white; border: none; border-radius: 5px; font-size: 0.72rem; font-weight: 700; cursor: pointer; font-family: 'DM Sans', sans-serif; text-transform: uppercase; letter-spacing: 0.05em; transition: background 0.15s; white-space: nowrap; }
+  .save-upd-btn:hover { background: var(--green-mid); }
+
+  .updates-log { display: flex; flex-direction: column; gap: 7px; }
+  .update-entry { border: 1px solid var(--border); border-radius: 7px; padding: 9px 10px; background: #fafafa; position: relative; }
+  .update-entry.hb { border-left: 3px solid var(--red); }
+  .update-entry.hc:not(.hb) { border-left: 3px solid var(--blue); }
+  .update-meta { display: flex; align-items: center; gap: 7px; margin-bottom: 5px; flex-wrap: wrap; }
+  .update-date-lbl { font-size: 0.69rem; font-weight: 700; color: var(--green); text-transform: uppercase; letter-spacing: 0.05em; }
+  .update-text { font-size: 0.78rem; color: var(--ink); line-height: 1.5; padding-right: 22px; }
+  .update-author { font-size: 0.66rem; color: var(--muted); margin-top: 4px; }
+  .del-btn { position: absolute; top: 7px; right: 7px; background: none; border: none; cursor: pointer; color: var(--border); font-size: 13px; transition: color 0.15s; }
+  .del-btn:hover { color: var(--red); }
+  .no-updates { font-size: 0.75rem; color: var(--muted); font-style: italic; }
+
+  .pers-block { margin-bottom: 12px; border: 1px solid var(--border); border-radius: 9px; overflow: hidden; background: white; }
+  .pers-block.met-goal { border-color: var(--gold); background: #fdfaf2; }
+  .pers-block-inner { display: flex; align-items: flex-start; gap: 8px; padding: 11px 12px; }
+  .pers-term-row { padding: 0 12px 9px; display: flex; gap: 6px; flex-wrap: wrap; }
+
+  .add-btn { display: inline-flex; align-items: center; gap: 4px; background: none; border: 1.5px dashed var(--border); border-radius: 7px; padding: 6px 12px; font-size: 0.73rem; color: var(--muted); cursor: pointer; font-family: 'DM Sans', sans-serif; font-weight: 500; transition: all 0.15s; margin-top: 3px; width: 100%; justify-content: center; }
+  .add-btn:hover { border-color: var(--green); color: var(--green); background: var(--green-light); }
+
+  .readonly-notice { background: var(--gold-light); border: 1px solid #ecd9ad; border-radius: 8px; padding: 10px 14px; font-size: 0.78rem; color: #8a6420; font-weight: 500; margin-bottom: 18px; }
+
+  .modal-backdrop { position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 9000; display: flex; align-items: flex-start; justify-content: center; overflow-y: auto; padding: 40px 16px; }
+  .rollover-card { background: white; border-radius: 14px; width: 720px; max-width: 100%; box-shadow: 0 20px 60px rgba(0,0,0,0.3); overflow: hidden; }
+  .rollover-header { background: linear-gradient(135deg, var(--green), var(--green-mid)); padding: 20px 26px; color: white; }
+  .rollover-title { font-family: 'DM Serif Display', serif; font-size: 1.25rem; }
+  .rollover-sub { font-size: 0.75rem; opacity: 0.75; margin-top: 4px; }
+  .rollover-body { padding: 22px 26px; max-height: 60vh; overflow-y: auto; }
+  .term-picker { display: flex; gap: 10px; align-items: center; margin-bottom: 22px; flex-wrap: wrap; }
+  .term-picker label { font-size: 0.76rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; }
+  .term-picker select, .term-picker input { border: 1.5px solid var(--border); border-radius: 7px; padding: 8px 11px; font-family: 'DM Sans', sans-serif; font-size: 0.84rem; outline: none; }
+  .term-picker select:focus, .term-picker input:focus { border-color: var(--green); }
+  .term-picker input { width: 90px; }
+  .rollover-pos { margin-bottom: 18px; }
+  .rollover-pos-title { font-size: 0.8rem; font-weight: 700; color: var(--green); margin-bottom: 8px; padding-bottom: 5px; border-bottom: 1px solid var(--border); }
+  .rollover-goal { display: flex; align-items: flex-start; gap: 10px; padding: 8px 10px; border: 1px solid var(--border); border-radius: 8px; margin-bottom: 7px; background: #fafafa; }
+  .rollover-goal-text { flex: 1; font-size: 0.79rem; line-height: 1.45; color: var(--ink); }
+  .rollover-goal-type { font-size: 0.62rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: var(--muted); }
+  .rollover-toggle { display: flex; gap: 5px; flex-shrink: 0; }
+  .rt-btn { padding: 4px 10px; border-radius: 6px; border: 1.5px solid var(--border); background: white; font-size: 0.7rem; font-weight: 700; cursor: pointer; font-family: 'DM Sans', sans-serif; transition: all 0.13s; white-space: nowrap; }
+  .rt-btn.met-sel { border-color: var(--gold); background: var(--gold-light); color: #8a6420; }
+  .rt-btn.carry-sel { border-color: var(--blue); background: var(--blue-light); color: var(--blue); }
+  .rollover-footer { padding: 16px 26px; border-top: 1px solid var(--border); display: flex; justify-content: flex-end; gap: 10px; background: #fafafa; }
+  .modal-cancel { padding: 9px 18px; border: 1.5px solid var(--border); background: white; border-radius: 7px; font-family: 'DM Sans', sans-serif; font-size: 0.8rem; font-weight: 600; cursor: pointer; color: var(--muted); }
+  .modal-cancel:hover { background: var(--cream); }
+  .modal-confirm-green { padding: 9px 18px; background: var(--green); color: white; border: none; border-radius: 7px; font-family: 'DM Sans', sans-serif; font-size: 0.8rem; font-weight: 700; cursor: pointer; }
+  .modal-confirm-green:hover { background: var(--green-mid); }
+
+  .report-card { background: white; border-radius: 14px; width: 520px; max-width: 100%; box-shadow: 0 20px 60px rgba(0,0,0,0.3); overflow: hidden; }
+  .report-header { background: linear-gradient(135deg, var(--green), var(--green-mid)); padding: 20px 26px; color: white; }
+  .report-title { font-family: 'DM Serif Display', serif; font-size: 1.25rem; }
+  .report-sub { font-size: 0.75rem; opacity: 0.75; margin-top: 4px; }
+  .report-body { padding: 22px 26px; }
+  .report-row { display: flex; gap: 12px; margin-bottom: 16px; align-items: center; flex-wrap: wrap; }
+  .report-row label { font-size: 0.76rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; min-width: 60px; }
+  .report-date-input { border: 1.5px solid var(--border); border-radius: 7px; padding: 8px 11px; font-family: 'DM Sans', sans-serif; font-size: 0.84rem; outline: none; }
+  .report-date-input:focus { border-color: var(--green); }
+  .report-check { display: flex; align-items: center; gap: 8px; font-size: 0.8rem; cursor: pointer; user-select: none; margin-bottom: 8px; }
+  .report-check input { width: 15px; height: 15px; accent-color: var(--green); cursor: pointer; }
+  .report-preview-count { background: var(--green-light); border-radius: 8px; padding: 10px 14px; font-size: 0.78rem; color: var(--green); font-weight: 600; margin-top: 8px; }
+  .report-footer { padding: 16px 26px; border-top: 1px solid var(--border); display: flex; justify-content: flex-end; gap: 10px; background: #fafafa; }
+
+  /* EDITOR MODALS (workstreams & resources) */
+  .editor-card { background: white; border-radius: 14px; width: 600px; max-width: 100%; box-shadow: 0 20px 60px rgba(0,0,0,0.3); overflow: hidden; }
+  .editor-body { padding: 22px 26px; max-height: 60vh; overflow-y: auto; }
+  .editor-row { display: flex; gap: 8px; align-items: center; margin-bottom: 9px; }
+  .editor-input { border: 1.5px solid var(--border); border-radius: 7px; padding: 8px 11px; font-family: 'DM Sans', sans-serif; font-size: 0.82rem; outline: none; transition: border-color 0.15s; }
+  .editor-input:focus { border-color: var(--green); }
+  .editor-input.flex1 { flex: 1; }
+  .editor-input.icon-input { width: 52px; text-align: center; }
+  .editor-input.sub-input { width: 120px; }
+  .editor-del { background: none; border: none; cursor: pointer; color: var(--border); font-size: 15px; padding: 4px 6px; border-radius: 5px; flex-shrink: 0; }
+  .editor-del:hover { color: var(--red); background: var(--red-light); }
+  .editor-add { display: inline-flex; align-items: center; gap: 5px; background: none; border: 1.5px dashed var(--border); border-radius: 7px; padding: 7px 14px; font-size: 0.76rem; color: var(--muted); cursor: pointer; font-family: 'DM Sans', sans-serif; font-weight: 600; transition: all 0.15s; margin-top: 6px; }
+  .editor-add:hover { border-color: var(--green); color: var(--green); background: var(--green-light); }
+  .editor-hint { font-size: 0.72rem; color: var(--muted); margin-bottom: 14px; line-height: 1.5; }
+  .editor-col-labels { display: flex; gap: 8px; font-size: 0.66rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); margin-bottom: 6px; }
+
+  .toast { position: fixed; bottom: 20px; right: 20px; background: var(--green); color: white; padding: 10px 18px; border-radius: 7px; font-size: 0.8rem; font-weight: 500; opacity: 0; transform: translateY(8px); transition: all 0.25s; pointer-events: none; z-index: 9999; max-width: 320px; }
+  .toast.show { opacity: 1; transform: translateY(0); }
+
+  @media (max-width: 900px) { .sidebar { display: none; } }
+  @media (max-width: 768px) {
+    .header, .ws-bar, .nav-tabs, .term-bar { padding-left: 16px; padding-right: 16px; }
+    .main { padding: 20px 16px; }
+    .goals-grid { grid-template-columns: 1fr; }
+    .header-left h1 { font-size: 1.15rem; }
+    .header-right .save-status { display: none; }
+  }
+  @media (max-width: 480px) { .login-card { width: 95vw; padding: 32px 24px; } }
+</style>
+</head>
+<body>
+<div id="app"><div class="loading-wrap"><div class="spinner"></div><div class="loading-text">Loading...</div></div></div>
+<div class="toast" id="toast"></div>
+<div id="modal-root"></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyDoLFVigTTCjSucklWcQqCVZraPpJC7BRU",
+  authDomain: "ltf-goals.firebaseapp.com",
+  projectId: "ltf-goals",
+  storageBucket: "ltf-goals.firebasestorage.app",
+  messagingSenderId: "919532329045",
+  appId: "1:919532329045:web:302a8bc8f5981d900c9cdc"
+};
+
+const firebaseApp = initializeApp(firebaseConfig);
+const db = getFirestore(firebaseApp);
+const auth = getAuth(firebaseApp);
+const DOC_REF = doc(db, "goals", "shared");
+
+// ── Access control ────────────────────────────────────────────
+const ADMIN_EMAILS = ['hana@projectlevelthefield.com'];
+const EMAIL_TO_POSITION = {
+  'hana@projectlevelthefield.com': 'CEO',
+  'krish@projectlevelthefield.com': 'COO',
+  'rayyan@projectlevelthefield.com': 'CFO',
+  'keira@projectlevelthefield.com': 'SVP_Mentorship',
+  'ava@projectlevelthefield.com': 'SVP_Marketing',
+  'john@projectlevelthefield.com': 'SVP_Legal',
+  'brianna@projectlevelthefield.com': 'SVP_Chapter'
+  // Add SVP_Technology and SVP_Data emails here once those roles are filled
+};
+
+const POSITIONS = [
+  { id:'CEO', title:'CEO' },
+  { id:'COO', title:'COO' },
+  { id:'CFO', title:'CFO' },
+  { id:'SVP_Mentorship', title:'SVP of Mentorship' },
+  { id:'SVP_Marketing', title:'SVP of Marketing' },
+  { id:'SVP_Technology', title:'SVP of Technology' },
+  { id:'SVP_Legal', title:'SVP of Legal Affairs' },
+  { id:'SVP_Chapter', title:'SVP of Chapter Relations' },
+  { id:'SVP_Data', title:'SVP of Data Analytics' }
+];
+const SEASONS = ['Spring','Summer','Fall'];
+const DEFAULT_TERM = 'Summer 2026';
+
+// Color palette cycled across workstreams
+const WS_PALETTE = [
+  {main:'#1a6b3c', light:'#e8f5ee', text:'#1a6b3c'},
+  {main:'#2563ab', light:'#dbeafe', text:'#2563ab'},
+  {main:'#7c3aed', light:'#ede9fe', text:'#7c3aed'},
+  {main:'#c8963e', light:'#fdf3e3', text:'#8a6420'},
+  {main:'#c0392b', light:'#fdecea', text:'#c0392b'},
+  {main:'#1d9e75', light:'#e1f5ee', text:'#0f6e56'}
+];
+const DEFAULT_WORKSTREAMS = [
+  {id:'ws1', name:'Leadership Support & Development'},
+  {id:'ws2', name:'Summer Mentorship Platform'},
+  {id:'ws3', name:'Chapter Infrastructure'}
+];
+const DEFAULT_POS_WS = {
+  CEO:['ws1'], COO:['ws1','ws3'], CFO:['ws1'],
+  SVP_Mentorship:['ws1','ws2'], SVP_Marketing:['ws1','ws2'], SVP_Technology:['ws1','ws2'],
+  SVP_Legal:['ws1'], SVP_Chapter:['ws1','ws3'], SVP_Data:['ws1','ws2','ws3']
+};
+const DEFAULT_RESOURCES = [
+  { label:'Onboarding Guide', sub:'All positions', icon:'📋', url:'https://docs.google.com/document/d/1vBkGlYj3Rg_GJBELoRVutBhwRfQrR6cer4NGK0v0neo/edit?usp=sharing' },
+  { label:'Job Descriptions', sub:'All roles', icon:'📄', url:'https://docs.google.com/document/d/1J4qTU51cBMJIFjQl-WZzLT-sZ90cH_cskly4SLoWJDQ/edit?usp=sharing' },
+  { label:'Board Member Contacts', sub:'Names & contacts', icon:'👥', url:'https://docs.google.com/document/d/1m5PM51hkHMwPKuHMIDBnl-A_crW29G1AvFh1pNEia_Q/edit?usp=sharing' }
+];
+
+// ── State ─────────────────────────────────────────────────────
+let state = {
+  loading:true, authChecked:false, user:null, isAdmin:false, myPosition:null,
+  loginError:'', loggingIn:false,
+  view:'overview', currentPos:null, wsFilter:'all',
+  currentTerm:DEFAULT_TERM, terms:[DEFAULT_TERM], viewTerm:DEFAULT_TERM,
+  termWorkstreams:{}, positionWorkstreams:{}, resources:[],
+  goals:{}, drafts:{}, saving:false, lastSaved:null
+};
+
+// ── Firebase ──────────────────────────────────────────────────
+async function loadData() {
+  try { const snap=await getDoc(DOC_REF); if(snap.exists()) return snap.data()||null; } catch(e){console.error(e);}
+  return null;
+}
+
+let saveTimer=null;
+function scheduleSave() {
+  state.saving=true; updateSaveStatus();
+  clearTimeout(saveTimer);
+  saveTimer=setTimeout(async()=>{
+    try {
+      await setDoc(DOC_REF,{
+        goals:state.goals, currentTerm:state.currentTerm, terms:state.terms,
+        termWorkstreams:state.termWorkstreams, positionWorkstreams:state.positionWorkstreams,
+        resources:state.resources, updatedAt:new Date().toISOString()
+      });
+      state.saving=false; state.lastSaved=new Date();
+    } catch(e){ console.error(e); state.saving=false; showToast('⚠ Save failed.'); }
+    updateSaveStatus();
+  },1200);
+}
+
+function updateSaveStatus() {
+  const el=document.getElementById('save-status'); if(!el) return;
+  if(state.saving){el.textContent='⟳ Saving...';return;}
+  if(state.lastSaved) el.textContent='✓ Saved '+state.lastSaved.toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});
+}
+
+// ── Data init ─────────────────────────────────────────────────
+function initData(raw) {
+  state.currentTerm = raw?.currentTerm || DEFAULT_TERM;
+  state.terms = (raw?.terms && raw.terms.length) ? raw.terms : [state.currentTerm];
+  state.viewTerm = state.currentTerm;
+  state.termWorkstreams = raw?.termWorkstreams || {};
+  state.positionWorkstreams = raw?.positionWorkstreams || {};
+  state.resources = (raw?.resources && raw.resources.length) ? raw.resources : JSON.parse(JSON.stringify(DEFAULT_RESOURCES));
+  // ensure every term has workstreams + assignments
+  state.terms.forEach(t=>{
+    if(!state.termWorkstreams[t]) state.termWorkstreams[t]=JSON.parse(JSON.stringify(DEFAULT_WORKSTREAMS));
+    if(!state.positionWorkstreams[t]) state.positionWorkstreams[t]=JSON.parse(JSON.stringify(DEFAULT_POS_WS));
+  });
+  const g = raw?.goals ? JSON.parse(JSON.stringify(raw.goals)) : {};
+  POSITIONS.forEach(p=>{
+    if(!g[p.id]) g[p.id]={org:[{text:'',completed:false,updates:[]},{text:'',completed:false,updates:[]}],pers:[{text:''},{text:''}]};
+    g[p.id].org=(g[p.id].org||[]).map(x=>{
+      const goal = typeof x==='string'?{text:x,completed:false,updates:[]}:{text:x.text||'',completed:x.completed||false,updates:x.updates||[]};
+      goal.term = x.term || state.currentTerm;
+      goal.status = x.status || 'active';
+      goal.carriedFrom = x.carriedFrom || null;
+      return goal;
+    });
+    g[p.id].pers=(g[p.id].pers||[]).map(x=>{
+      const goal = typeof x==='string'?{text:x}:{text:x.text||''};
+      goal.term = x.term || state.currentTerm;
+      goal.status = x.status || 'active';
+      goal.carriedFrom = x.carriedFrom || null;
+      return goal;
+    });
+  });
+  state.goals=g;
+}
+
+// ── Workstream helpers ────────────────────────────────────────
+function getWorkstreams(term){ return state.termWorkstreams[term]||[]; }
+function getPosWs(pos,term){ return (state.positionWorkstreams[term]||{})[pos]||[]; }
+function wsColorByIndex(i){ return WS_PALETTE[i%WS_PALETTE.length]; }
+function wsInfo(term){
+  // returns [{id,name,color}]
+  return getWorkstreams(term).map((ws,i)=>({...ws, color:wsColorByIndex(i)}));
+}
+
+// ── Goal helpers ──────────────────────────────────────────────
+function goalsForTerm(pos, type, term) {
+  const list = state.goals[pos]?.[type] || [];
+  return list.map((g,i)=>({goal:g, idx:i})).filter(({goal})=>goal.term===term);
+}
+function getDraft(pos,idx){
+  if(!state.drafts[pos])state.drafts[pos]={};
+  if(!state.drafts[pos][idx])state.drafts[pos][idx]={date:todayStr(),text:'',blocker:false,checkin:false};
+  return state.drafts[pos][idx];
+}
+function getCompletion(pos){
+  const items=goalsForTerm(pos,'org',state.viewTerm);
+  if(!items.length) return {completed:0,total:0,pct:0};
+  const completed=items.filter(({goal})=>goal.completed||goal.status==='met').length;
+  return {completed,total:items.length,pct:Math.round(completed/items.length*100)};
+}
+function hasBlockers(pos){ return goalsForTerm(pos,'org',state.viewTerm).some(({goal})=>goal.updates?.some(u=>u.blocker)); }
+function hasCheckins(pos){ return goalsForTerm(pos,'org',state.viewTerm).some(({goal})=>goal.updates?.some(u=>u.checkin)); }
+function todayStr(){ return new Date().toISOString().slice(0,10); }
+function fmtDate(s){ if(!s)return '';const [y,m,d]=s.split('-');return ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][parseInt(m)-1]+' '+parseInt(d)+', '+y; }
+function esc(s){ if(!s)return '';return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+function isViewingCurrentTerm(){ return state.viewTerm===state.currentTerm; }
+function canUpdate(pos){ return state.isAdmin || state.myPosition===pos; }
+
+// ── Auth ──────────────────────────────────────────────────────
+window.tryLogin=async function(){
+  const email=document.getElementById('email-input').value.trim().toLowerCase();
+  const pw=document.getElementById('pw-input').value;
+  if(!email||!pw){ state.loginError='Please enter your email and password.'; render(); return; }
+  state.loggingIn=true; state.loginError=''; render();
+  try { await signInWithEmailAndPassword(auth, email, pw); }
+  catch(e) {
+    state.loggingIn=false;
+    const code=e.code||'';
+    if(code.includes('invalid-credential')||code.includes('wrong-password')||code.includes('user-not-found')) state.loginError='Incorrect email or password.';
+    else if(code.includes('too-many-requests')) state.loginError='Too many attempts. Please wait a moment.';
+    else if(code.includes('invalid-email')) state.loginError='Please enter a valid email address.';
+    else state.loginError='Sign-in failed. Please try again.';
+    render();
+    setTimeout(()=>{const el=document.getElementById('pw-input');if(el){el.value='';el.focus();}},50);
+  }
+};
+window.logout=async function(){ try{await signOut(auth);}catch(e){} };
+
+// ── Workstream editor (admin, current term) ───────────────────
+window.openWsEditor=function(){
+  if(!state.isAdmin||!isViewingCurrentTerm()) return;
+  const wsList=getWorkstreams(state.currentTerm);
+  const modal=document.getElementById('modal-root');
+  const rows=wsList.map((ws,i)=>`
+    <div class="editor-row" data-wsid="${esc(ws.id)}">
+      <span style="width:14px;height:14px;border-radius:50%;background:${wsColorByIndex(i).main};flex-shrink:0"></span>
+      <input class="editor-input flex1 ws-name-input" value="${esc(ws.name)}" placeholder="Workstream name">
+      <button class="editor-del" onclick="this.parentElement.remove()" title="Remove workstream">✕</button>
+    </div>`).join('');
+  modal.innerHTML=`<div class="modal-backdrop">
+    <div class="editor-card">
+      <div class="rollover-header">
+        <div class="rollover-title">🎯 Edit Workstreams — ${esc(state.currentTerm)}</div>
+        <div class="rollover-sub">Rename, add, or remove this term's workstreams / priorities.</div>
+      </div>
+      <div class="editor-body">
+        <div class="editor-hint">Removing a workstream unassigns it from all positions. Position assignments can be edited on each position's page.</div>
+        <div id="ws-editor-rows">${rows}</div>
+        <button class="editor-add" onclick="addWsEditorRow()">+ Add workstream</button>
+      </div>
+      <div class="rollover-footer">
+        <button class="modal-cancel" onclick="closeModal()">Cancel</button>
+        <button class="modal-confirm-green" onclick="saveWorkstreams()">Save Workstreams</button>
+      </div>
+    </div>
+  </div>`;
+};
+
+window.addWsEditorRow=function(){
+  const container=document.getElementById('ws-editor-rows');
+  const i=container.children.length;
+  const div=document.createElement('div');
+  div.className='editor-row';
+  div.dataset.wsid='';
+  div.innerHTML=`<span style="width:14px;height:14px;border-radius:50%;background:${wsColorByIndex(i).main};flex-shrink:0"></span>
+    <input class="editor-input flex1 ws-name-input" value="" placeholder="Workstream name">
+    <button class="editor-del" onclick="this.parentElement.remove()" title="Remove workstream">✕</button>`;
+  container.appendChild(div);
+  div.querySelector('input').focus();
+};
+
+window.saveWorkstreams=function(){
+  const rows=[...document.querySelectorAll('#ws-editor-rows .editor-row')];
+  const newList=[];
+  rows.forEach((row,i)=>{
+    const name=row.querySelector('.ws-name-input').value.trim();
+    if(!name) return;
+    let id=row.dataset.wsid;
+    if(!id) id='ws'+Date.now()+'_'+i;
+    newList.push({id, name});
+  });
+  if(!newList.length){ showToast('⚠ You need at least one workstream.'); return; }
+  const keptIds=newList.map(w=>w.id);
+  state.termWorkstreams[state.currentTerm]=newList;
+  // prune removed ws from assignments
+  const assigns=state.positionWorkstreams[state.currentTerm]||{};
+  Object.keys(assigns).forEach(pos=>{ assigns[pos]=assigns[pos].filter(id=>keptIds.includes(id)); });
+  state.positionWorkstreams[state.currentTerm]=assigns;
+  if(state.wsFilter!=='all'&&!keptIds.includes(state.wsFilter)) state.wsFilter='all';
+  closeModal(); scheduleSave(); showToast('✓ Workstreams updated!'); render();
+};
+
+window.togglePosWs=function(pos, wsId){
+  if(!state.isAdmin||!isViewingCurrentTerm()) return;
+  if(!state.positionWorkstreams[state.currentTerm]) state.positionWorkstreams[state.currentTerm]={};
+  const assigns=state.positionWorkstreams[state.currentTerm];
+  if(!assigns[pos]) assigns[pos]=[];
+  const i=assigns[pos].indexOf(wsId);
+  if(i>-1) assigns[pos].splice(i,1); else assigns[pos].push(wsId);
+  scheduleSave(); render();
+};
+
+// ── Resources editor (admin) ──────────────────────────────────
+window.openResourceEditor=function(){
+  if(!state.isAdmin) return;
+  const modal=document.getElementById('modal-root');
+  const rows=state.resources.map(r=>`
+    <div class="editor-row res-editor-row">
+      <input class="editor-input icon-input res-icon-input" value="${esc(r.icon)}" placeholder="📄" maxlength="4">
+      <input class="editor-input flex1 res-label-input" value="${esc(r.label)}" placeholder="Link name">
+      <input class="editor-input sub-input res-sub-input" value="${esc(r.sub||'')}" placeholder="Subtitle">
+      <input class="editor-input flex1 res-url-input" value="${esc(r.url)}" placeholder="https://...">
+      <button class="editor-del" onclick="this.parentElement.remove()" title="Remove link">✕</button>
+    </div>`).join('');
+  modal.innerHTML=`<div class="modal-backdrop">
+    <div class="editor-card" style="width:720px">
+      <div class="rollover-header">
+        <div class="rollover-title">📁 Edit Resources</div>
+        <div class="rollover-sub">Add, rename, or update the links shown in the Resources sidebar for everyone.</div>
+      </div>
+      <div class="editor-body">
+        <div class="editor-col-labels"><span style="width:52px">Icon</span><span style="flex:1">Name</span><span style="width:120px">Subtitle</span><span style="flex:1">URL</span><span style="width:26px"></span></div>
+        <div id="res-editor-rows">${rows}</div>
+        <button class="editor-add" onclick="addResourceRow()">+ Add link</button>
+      </div>
+      <div class="rollover-footer">
+        <button class="modal-cancel" onclick="closeModal()">Cancel</button>
+        <button class="modal-confirm-green" onclick="saveResources()">Save Resources</button>
+      </div>
+    </div>
+  </div>`;
+};
+
+window.addResourceRow=function(){
+  const container=document.getElementById('res-editor-rows');
+  const div=document.createElement('div');
+  div.className='editor-row res-editor-row';
+  div.innerHTML=`<input class="editor-input icon-input res-icon-input" value="🔗" placeholder="📄" maxlength="4">
+    <input class="editor-input flex1 res-label-input" value="" placeholder="Link name">
+    <input class="editor-input sub-input res-sub-input" value="" placeholder="Subtitle">
+    <input class="editor-input flex1 res-url-input" value="" placeholder="https://...">
+    <button class="editor-del" onclick="this.parentElement.remove()" title="Remove link">✕</button>`;
+  container.appendChild(div);
+  div.querySelector('.res-label-input').focus();
+};
+
+window.saveResources=function(){
+  const rows=[...document.querySelectorAll('#res-editor-rows .res-editor-row')];
+  const newList=[];
+  for(const row of rows){
+    const icon=row.querySelector('.res-icon-input').value.trim()||'🔗';
+    const label=row.querySelector('.res-label-input').value.trim();
+    const sub=row.querySelector('.res-sub-input').value.trim();
+    let url=row.querySelector('.res-url-input').value.trim();
+    if(!label&&!url) continue;
+    if(!label){ showToast('⚠ Every link needs a name.'); return; }
+    if(!url){ showToast(`⚠ "${label}" is missing a URL.`); return; }
+    if(!/^https?:\/\//i.test(url)) url='https://'+url;
+    newList.push({icon,label,sub,url});
+  }
+  state.resources=newList;
+  closeModal(); scheduleSave(); showToast('✓ Resources updated!'); render();
+};
+
+window.closeModal=function(){ document.getElementById('modal-root').innerHTML=''; };
+
+// ── Term rollover ─────────────────────────────────────────────
+let rolloverDecisions = {};
+
+window.openRollover=function(){
+  if(!state.isAdmin) return;
+  rolloverDecisions={};
+  POSITIONS.forEach(p=>{
+    goalsForTerm(p.id,'org',state.currentTerm).forEach(({goal,idx})=>{
+      if(goal.status==='met') return;
+      rolloverDecisions[`${p.id}|org|${idx}`]= goal.completed?'met':'carry';
+    });
+    goalsForTerm(p.id,'pers',state.currentTerm).forEach(({goal,idx})=>{
+      if(goal.status==='met') return;
+      rolloverDecisions[`${p.id}|pers|${idx}`]='carry';
+    });
+  });
+  renderRolloverModal();
+};
+
+window.setRolloverDecision=function(key,val){
+  rolloverDecisions[key]=val;
+  const row=document.getElementById('rt-'+key.replace(/[|]/g,'-'));
+  if(row){
+    row.querySelector('.rt-met').classList.toggle('met-sel',val==='met');
+    row.querySelector('.rt-carry').classList.toggle('carry-sel',val==='carry');
+  }
+};
+
+function renderRolloverModal(){
+  const modal=document.getElementById('modal-root');
+  const [curSeason,curYearStr]=state.currentTerm.split(' ');
+  const curYear=parseInt(curYearStr)||new Date().getFullYear();
+  const si=SEASONS.indexOf(curSeason);
+  const nextSeason=si===-1?'Fall':SEASONS[(si+1)%SEASONS.length];
+  const nextYear=(si===SEASONS.length-1)?curYear+1:curYear;
+
+  let posSections='';
+  POSITIONS.forEach(p=>{
+    const orgItems=goalsForTerm(p.id,'org',state.currentTerm).filter(({goal})=>goal.status!=='met'&&goal.text.trim());
+    const persItems=goalsForTerm(p.id,'pers',state.currentTerm).filter(({goal})=>goal.status!=='met'&&goal.text.trim());
+    if(!orgItems.length&&!persItems.length) return;
+    let rows='';
+    const mkRow=(type,label,goal,idx)=>{
+      const key=`${p.id}|${type}|${idx}`;
+      const dec=rolloverDecisions[key]||'carry';
+      return `<div class="rollover-goal">
+        <div style="flex:1"><div class="rollover-goal-type">${label}</div><div class="rollover-goal-text">${esc(goal.text)}</div></div>
+        <div class="rollover-toggle" id="rt-${p.id}-${type}-${idx}">
+          <button class="rt-btn rt-met ${dec==='met'?'met-sel':''}" onclick="setRolloverDecision('${key}','met')">✓ Met</button>
+          <button class="rt-btn rt-carry ${dec==='carry'?'carry-sel':''}" onclick="setRolloverDecision('${key}','carry')">→ Carry Over</button>
+        </div>
+      </div>`;
+    };
+    orgItems.forEach(({goal,idx})=>rows+=mkRow('org','🏢 Organizational',goal,idx));
+    persItems.forEach(({goal,idx})=>rows+=mkRow('pers','🌱 Personal',goal,idx));
+    posSections+=`<div class="rollover-pos"><div class="rollover-pos-title">${POSITIONS.find(x=>x.id===p.id).title}</div>${rows}</div>`;
+  });
+  if(!posSections) posSections='<div style="color:var(--muted);font-size:0.82rem;font-style:italic">No active goals in the current term.</div>';
+
+  modal.innerHTML=`<div class="modal-backdrop">
+    <div class="rollover-card">
+      <div class="rollover-header">
+        <div class="rollover-title">🔄 Start New Term</div>
+        <div class="rollover-sub">Review each goal from ${esc(state.currentTerm)}. "Met" archives the goal; "Carry Over" moves it into the new term. Workstreams carry over automatically — edit them after via 🎯 Edit Workstreams.</div>
+      </div>
+      <div class="rollover-body">
+        <div class="term-picker">
+          <label>New term:</label>
+          <select id="rollover-season">${SEASONS.map(s=>`<option ${s===nextSeason?'selected':''}>${s}</option>`).join('')}</select>
+          <input id="rollover-year" type="number" value="${nextYear}" min="2024" max="2050">
+        </div>
+        ${posSections}
+      </div>
+      <div class="rollover-footer">
+        <button class="modal-cancel" onclick="closeModal()">Cancel</button>
+        <button class="modal-confirm-green" onclick="confirmRollover()">Start New Term →</button>
+      </div>
+    </div>
+  </div>`;
+}
+
+window.confirmRollover=function(){
+  const season=document.getElementById('rollover-season').value;
+  const year=document.getElementById('rollover-year').value;
+  const newTerm=`${season} ${year}`;
+  if(state.terms.includes(newTerm)){ showToast('⚠ That term already exists.'); return; }
+  const oldTerm=state.currentTerm;
+  Object.entries(rolloverDecisions).forEach(([key,dec])=>{
+    const [pos,type,idxStr]=key.split('|');
+    const idx=parseInt(idxStr);
+    const goal=state.goals[pos]?.[type]?.[idx];
+    if(!goal) return;
+    if(dec==='met'){ goal.status='met'; }
+    else { goal.term=newTerm; goal.carriedFrom=goal.carriedFrom||oldTerm; goal.completed=false; }
+  });
+  // carry workstreams + assignments into new term
+  state.termWorkstreams[newTerm]=JSON.parse(JSON.stringify(state.termWorkstreams[oldTerm]||DEFAULT_WORKSTREAMS));
+  state.positionWorkstreams[newTerm]=JSON.parse(JSON.stringify(state.positionWorkstreams[oldTerm]||DEFAULT_POS_WS));
+  state.terms.push(newTerm);
+  state.currentTerm=newTerm;
+  state.viewTerm=newTerm;
+  state.wsFilter='all';
+  closeModal();
+  scheduleSave();
+  showToast(`✓ ${newTerm} has begun! Met goals archived under ${oldTerm}.`);
+  render();
+};
+
+// ── Board Report ──────────────────────────────────────────────
+function collectUpdatesInRange(startStr, endStr, blockersOnly){
+  const results=[];
+  POSITIONS.forEach(p=>{
+    (state.goals[p.id]?.org||[]).forEach(goal=>{
+      (goal.updates||[]).forEach(u=>{
+        if(u.date>=startStr && u.date<=endStr){
+          if(blockersOnly && !u.blocker) return;
+          results.push({position:p.id, positionTitle:p.title, goalText:goal.text, goalTerm:goal.term, update:u});
+        }
+      });
+    });
+  });
+  return results;
+}
+
+window.openBoardReport=function(){
+  if(!state.isAdmin) return;
+  const end=todayStr();
+  const startDate=new Date(); startDate.setDate(startDate.getDate()-30);
+  const start=startDate.toISOString().slice(0,10);
+  const modal=document.getElementById('modal-root');
+  modal.innerHTML=`<div class="modal-backdrop">
+    <div class="report-card">
+      <div class="report-header">
+        <div class="report-title">📊 Board Report</div>
+        <div class="report-sub">Export all C-Suite updates in a date range as a PDF for the National Board.</div>
+      </div>
+      <div class="report-body">
+        <div class="report-row">
+          <label>From</label>
+          <input type="date" class="report-date-input" id="report-start" value="${start}" onchange="updateReportCount()">
+          <label>To</label>
+          <input type="date" class="report-date-input" id="report-end" value="${end}" onchange="updateReportCount()">
+        </div>
+        <label class="report-check"><input type="checkbox" id="report-blockers-only" onchange="updateReportCount()"> Blockers only</label>
+        <label class="report-check"><input type="checkbox" id="report-include-goals" checked> Include goal completion summary</label>
+        <div class="report-preview-count" id="report-count"></div>
+      </div>
+      <div class="report-footer">
+        <button class="modal-cancel" onclick="closeModal()">Cancel</button>
+        <button class="modal-confirm-green" onclick="generateBoardReport()">⬇ Download PDF</button>
+      </div>
+    </div>
+  </div>`;
+  updateReportCount();
+};
+
+window.updateReportCount=function(){
+  const start=document.getElementById('report-start')?.value;
+  const end=document.getElementById('report-end')?.value;
+  const blockersOnly=document.getElementById('report-blockers-only')?.checked;
+  const el=document.getElementById('report-count');
+  if(!start||!end||!el) return;
+  const items=collectUpdatesInRange(start,end,blockersOnly);
+  const blockerCount=items.filter(i=>i.update.blocker).length;
+  const checkinCount=items.filter(i=>i.update.checkin).length;
+  el.innerHTML=`📝 ${items.length} update${items.length!==1?'s':''} in range · 🚨 ${blockerCount} blocker${blockerCount!==1?'s':''} · 📅 ${checkinCount} check-in request${checkinCount!==1?'s':''}`;
+};
+
+window.generateBoardReport=function(){
+  const start=document.getElementById('report-start').value;
+  const end=document.getElementById('report-end').value;
+  if(!start||!end){ showToast('⚠ Please pick both dates.'); return; }
+  if(start>end){ showToast('⚠ Start date must be before end date.'); return; }
+  const blockersOnly=document.getElementById('report-blockers-only').checked;
+  const includeGoals=document.getElementById('report-include-goals').checked;
+  const items=collectUpdatesInRange(start,end,blockersOnly);
+
+  const { jsPDF } = window.jspdf;
+  const pdf=new jsPDF({unit:'pt',format:'letter'});
+  const pageW=612, pageH=792, margin=54, contentW=pageW-margin*2;
+  let y=margin;
+  const GREEN=[26,107,60], RED=[192,57,43], BLUE=[37,99,171], MUTED=[107,114,128], INK=[28,28,28];
+
+  function checkPage(needed){ if(y+needed>pageH-margin){ pdf.addPage(); y=margin; } }
+  function addWrapped(text, size, color, style, indent=0, lineGap=1.35){
+    pdf.setFontSize(size); pdf.setTextColor(...color); pdf.setFont('helvetica', style||'normal');
+    const lines=pdf.splitTextToSize(text, contentW-indent);
+    lines.forEach(line=>{ checkPage(size*lineGap); pdf.text(line, margin+indent, y); y+=size*lineGap; });
+  }
+
+  pdf.setFillColor(...GREEN);
+  pdf.rect(0,0,pageW,90,'F');
+  pdf.setTextColor(255,255,255);
+  pdf.setFont('helvetica','bold'); pdf.setFontSize(20);
+  pdf.text('Project Level The Field', margin, 40);
+  pdf.setFont('helvetica','normal'); pdf.setFontSize(11);
+  pdf.text('C-Suite Update Report for the National Board', margin, 60);
+  pdf.setFontSize(9);
+  pdf.text(`Period: ${fmtDate(start)} — ${fmtDate(end)}${blockersOnly?'  ·  Blockers only':''}`, margin, 76);
+  y=115;
+
+  const blockerCount=items.filter(i=>i.update.blocker).length;
+  const checkinCount=items.filter(i=>i.update.checkin).length;
+  addWrapped('SUMMARY', 10, GREEN, 'bold'); y+=2;
+  addWrapped(`Total updates: ${items.length}    Blockers flagged: ${blockerCount}    Check-in requests: ${checkinCount}`, 10, INK, 'normal');
+  addWrapped(`Current term: ${state.currentTerm}    Report generated: ${fmtDate(todayStr())}`, 9, MUTED, 'normal');
+  const wsNames=wsInfo(state.currentTerm).map(w=>w.name).join('  ·  ');
+  if(wsNames) addWrapped(`Workstreams this term: ${wsNames}`, 9, MUTED, 'normal');
+  y+=10;
+
+  if(includeGoals){
+    checkPage(30);
+    addWrapped('GOAL COMPLETION — '+state.currentTerm.toUpperCase(), 10, GREEN, 'bold'); y+=2;
+    POSITIONS.forEach(p=>{
+      const orgItems=goalsForTerm(p.id,'org',state.currentTerm);
+      if(!orgItems.length) return;
+      const completed=orgItems.filter(({goal})=>goal.completed||goal.status==='met').length;
+      addWrapped(`${p.title}:  ${completed}/${orgItems.length} organizational goals complete`, 9.5, INK, 'normal', 8);
+    });
+    y+=10;
+  }
+
+  POSITIONS.forEach(p=>{
+    const posItems=items.filter(i=>i.position===p.id);
+    if(!posItems.length) return;
+    checkPage(40);
+    y+=6;
+    pdf.setFillColor(232,245,238);
+    pdf.rect(margin-6, y-13, contentW+12, 20, 'F');
+    addWrapped(p.title.toUpperCase(), 11, GREEN, 'bold');
+    y+=4;
+    const byGoal={};
+    posItems.forEach(i=>{
+      const key=i.goalText||'(untitled goal)';
+      if(!byGoal[key]) byGoal[key]={term:i.goalTerm, updates:[]};
+      byGoal[key].updates.push(i.update);
+    });
+    Object.entries(byGoal).forEach(([goalText, data])=>{
+      checkPage(30);
+      addWrapped(`Goal (${data.term}): ${goalText}`, 9.5, INK, 'bold', 6);
+      data.updates.sort((a,b)=>a.date<b.date?1:-1).forEach(u=>{
+        checkPage(24);
+        let flagText='';
+        if(u.blocker) flagText+=' [BLOCKER]';
+        if(u.checkin) flagText+=' [CHECK-IN REQUESTED]';
+        const dateColor=u.blocker?RED:(u.checkin?BLUE:MUTED);
+        addWrapped(`${fmtDate(u.date)}${flagText}${u.author?'  ·  '+u.author:''}`, 8.5, dateColor, 'bold', 14);
+        addWrapped(u.text, 9.5, INK, 'normal', 14);
+        y+=3;
+      });
+      y+=4;
+    });
+  });
+
+  if(!items.length) addWrapped('No updates were recorded in this period.', 10, MUTED, 'italic');
+
+  const pageCount=pdf.getNumberOfPages();
+  for(let i=1;i<=pageCount;i++){
+    pdf.setPage(i);
+    pdf.setFontSize(8); pdf.setTextColor(...MUTED); pdf.setFont('helvetica','normal');
+    pdf.text(`Project Level The Field · Confidential · Page ${i} of ${pageCount}`, pageW/2, pageH-24, {align:'center'});
+  }
+
+  pdf.save(`PLTF_Board_Report_${start}_to_${end}.pdf`);
+  closeModal();
+  showToast('⬇ Board report downloaded!');
+};
+
+// ── Term viewing ──────────────────────────────────────────────
+window.changeViewTerm=function(term){ state.viewTerm=term; state.wsFilter='all'; render(); };
+
+// ── Standard actions ──────────────────────────────────────────
+window.setView=function(view,pos){state.view=view;state.currentPos=pos||null;render();window.scrollTo(0,0);};
+window.setFilter=function(f){state.wsFilter=f;render();};
+window.updateGoalText=function(type,pos,idx,val){
+  if(type==='org' && !state.isAdmin) return;
+  if(type==='pers' && !canUpdate(pos)) return;
+  state.goals[pos][type][idx].text=val;scheduleSave();
+};
+window.toggleComplete=function(pos,idx){
+  if(!state.isAdmin)return;
+  state.goals[pos].org[idx].completed=!state.goals[pos].org[idx].completed;
+  showToast(state.goals[pos].org[idx].completed?'✓ Goal marked complete!':'Goal marked in progress.');
+  scheduleSave();render();
+};
+window.togglePanel=function(id){const el=document.getElementById(id);if(el)el.classList.toggle('open');};
+window.updateDraftDate=function(pos,idx,val){getDraft(pos,idx).date=val;};
+window.toggleFlag=function(pos,idx,field){
+  const d=getDraft(pos,idx);d[field]=!d[field];
+  const el=document.getElementById(field==='blocker'?`fb-${pos}-${idx}`:`fc-${pos}-${idx}`);
+  if(el)el.classList.toggle('on',d[field]);
+};
+window.saveUpdate=function(pos,idx){
+  if(!canUpdate(pos)){showToast('⚠ You can only add updates to your own position.');return;}
+  const d=getDraft(pos,idx);
+  const textEl=document.getElementById(`ut-${pos}-${idx}`),dateEl=document.getElementById(`ud-${pos}-${idx}`);
+  if(textEl)d.text=textEl.value; if(dateEl)d.date=dateEl.value;
+  if(!d.text.trim()){showToast('⚠ Please enter update text.');return;}
+  if(!state.goals[pos].org[idx].updates)state.goals[pos].org[idx].updates=[];
+  state.goals[pos].org[idx].updates.unshift({date:d.date,text:d.text,blocker:d.blocker,checkin:d.checkin,author:state.user?.email||''});
+  const msg=d.blocker&&d.checkin?'🚨📅 Saved — blocker flagged & check-in requested!':d.blocker?'🚨 Saved — blocker flagged for CEO!':d.checkin?'📅 Saved — check-in requested!':'✓ Update saved!';
+  state.drafts[pos][idx]={date:todayStr(),text:'',blocker:false,checkin:false};
+  scheduleSave();showToast(msg);render();
+  setTimeout(()=>{const p=document.getElementById(`panel-${pos}-${idx}`);if(p)p.classList.add('open');},40);
+};
+window.deleteUpdate=function(pos,gIdx,uIdx){
+  if(!canUpdate(pos))return;
+  state.goals[pos].org[gIdx].updates.splice(uIdx,1);
+  scheduleSave();showToast('Update removed.');render();
+  setTimeout(()=>{const p=document.getElementById(`panel-${pos}-${gIdx}`);if(p)p.classList.add('open');},40);
+};
+window.addGoal=function(type,pos){
+  if(type==='org' && !state.isAdmin) return;
+  if(type==='pers' && !canUpdate(pos)) return;
+  const goal = type==='org'
+    ? {text:'',completed:false,updates:[],term:state.currentTerm,status:'active',carriedFrom:null}
+    : {text:'',term:state.currentTerm,status:'active',carriedFrom:null};
+  state.goals[pos][type].push(goal);
+  scheduleSave();render();
+  setTimeout(()=>{
+    const list=document.getElementById(`${type==='org'?'orgList':'persList'}-${pos}`);
+    if(list){const tas=list.querySelectorAll('textarea');if(tas.length)tas[tas.length-1].focus();}
+  },50);
+};
+window.exportGoals=function(){
+  let text=`PROJECT LEVEL THE FIELD — GOALS & UPDATES (${state.viewTerm})\n====================================================\n\n`;
+  const ws=wsInfo(state.viewTerm);
+  text+=`Workstreams: ${ws.map(w=>w.name).join(', ')||'(none)'}\n\n`;
+  POSITIONS.forEach(p=>{
+    const orgItems=goalsForTerm(p.id,'org',state.viewTerm);
+    const persItems=goalsForTerm(p.id,'pers',state.viewTerm);
+    const {completed,total}=getCompletion(p.id);
+    const posWsNames=getPosWs(p.id,state.viewTerm).map(id=>ws.find(w=>w.id===id)?.name).filter(Boolean).join(', ');
+    text+=`${p.title.toUpperCase()}\nWorkstreams: ${posWsNames||'(none)'}\nOrg Goals: ${completed}/${total} complete\n\nORGANIZATIONAL GOALS:\n`;
+    orgItems.forEach(({goal},i)=>{
+      if(goal.text?.trim()){
+        const st=goal.status==='met'?'MET':goal.completed?'COMPLETE':'IN PROGRESS';
+        text+=`  ${i+1}. [${st}] [${goal.term}${goal.carriedFrom?', carried from '+goal.carriedFrom:''}] ${goal.text}\n`;
+        (goal.updates||[]).forEach(u=>{text+=`     [${fmtDate(u.date)}]${u.author?' ('+u.author+')':''} ${u.text}${u.blocker?' ⚠ BLOCKER':''}${u.checkin?' 📅 CHECK-IN':''}\n`;});
+      }
+    });
+    text+='\nPERSONAL GOALS:\n';
+    persItems.forEach(({goal},i)=>{ if(goal.text?.trim()) text+=`  ${i+1}. [${goal.status==='met'?'MET':'ACTIVE'}] ${goal.text}\n`; });
+    text+='\n'+'-'.repeat(50)+'\n\n';
+  });
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(new Blob([text],{type:'text/plain'}));
+  a.download=`PLTF_Goals_${state.viewTerm.replace(' ','_')}.txt`;a.click();showToast('⬇ Exported!');
+};
+
+function showToast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),3200);}
+
+// ── Sidebar ───────────────────────────────────────────────────
+function renderSidebar(){
+  const roleLabel = state.isAdmin ? 'CEO / Admin' : (state.myPosition ? POSITIONS.find(p=>p.id===state.myPosition)?.title : 'View only');
+  return `<aside class="sidebar">
+    <div class="sidebar-title"><span>📁 Resources</span>${state.isAdmin?'<button class="sidebar-edit-btn" onclick="openResourceEditor()">✎ Edit</button>':''}</div>
+    ${state.resources.map(r=>`<a class="res-card" href="${esc(r.url)}" target="_blank" rel="noopener">
+      <div class="res-icon" style="background:var(--green-light)">${esc(r.icon)}</div>
+      <div><div class="res-label">${esc(r.label)}</div>${r.sub?`<div class="res-sub">${esc(r.sub)}</div>`:''}</div>
+      <span class="res-arrow">↗</span>
+    </a>`).join('')||'<div class="no-updates">No resources yet.</div>'}
+    <div class="sidebar-user">
+      <div class="sidebar-user-email">${esc(state.user?.email||'')}</div>
+      <div class="sidebar-user-role">${roleLabel}</div>
+    </div>
+  </aside>`;
+}
+
+// ── Render ────────────────────────────────────────────────────
+function render(){
+  const appEl=document.getElementById('app');
+  if(state.loading||!state.authChecked){
+    appEl.innerHTML=`<div class="loading-wrap"><div class="spinner"></div><div class="loading-text">Loading...</div></div>`;return;
+  }
+  if(!state.user){
+    appEl.innerHTML=`<div class="login-wrap"><div class="login-card">
+      <div class="login-logo">Project Level The Field</div>
+      <div class="login-sub">Executive Goal Portal</div>
+      ${state.loginError?`<div class="login-error">${esc(state.loginError)}</div>`:''}
+      <label class="login-label" for="email-input">Email</label>
+      <input class="login-input" id="email-input" type="email" placeholder="you@projectlevelthefield.com" onkeydown="if(event.key==='Enter')document.getElementById('pw-input').focus()">
+      <label class="login-label" for="pw-input">Password</label>
+      <input class="login-input" id="pw-input" type="password" placeholder="Password" onkeydown="if(event.key==='Enter')tryLogin()">
+      <button class="login-btn" onclick="tryLogin()" ${state.loggingIn?'disabled':''}>${state.loggingIn?'Signing in…':'Sign In →'}</button>
+      <div class="login-note">Use your LTF email and the password set by your administrator. Forgot your password? Contact Hana.</div>
+    </div></div>`;
+    setTimeout(()=>{const el=document.getElementById('email-input');if(el)el.focus();},50);
+    return;
+  }
+
+  const tabs=POSITIONS.map(p=>`<div class="tab ${state.view==='position'&&state.currentPos===p.id?'active':''}" onclick="setView('position','${p.id}')">${p.title}${state.myPosition===p.id?'<span class="me-dot"></span>':''}</div>`).join('');
+  const isCurrent=isViewingCurrentTerm();
+  const ws=wsInfo(state.viewTerm);
+
+  appEl.innerHTML=`
+  <div class="header">
+    <div class="header-left">
+      <h1>Project Level The Field</h1>
+      <p>Executive Goal Portal</p>
+    </div>
+    <div class="header-right">
+      <span class="save-status" id="save-status">${state.lastSaved?'✓ Saved':'Auto-saves as you type'}</span>
+      ${state.isAdmin?`<button class="btn btn-ghost" onclick="openBoardReport()">📊 Board Report</button>`:''}
+      ${state.isAdmin&&isCurrent?`<button class="btn btn-gold" onclick="openRollover()">🔄 New Term</button>`:''}
+      <button class="btn btn-ghost" onclick="exportGoals()">⬇ Export</button>
+      <button class="btn btn-ghost" onclick="logout()">Sign Out</button>
+    </div>
+  </div>
+  <div class="term-bar">
+    <span class="term-bar-label">Term:</span>
+    <select class="term-select" onchange="changeViewTerm(this.value)">
+      ${[...state.terms].reverse().map(t=>`<option ${t===state.viewTerm?'selected':''}>${t}</option>`).join('')}
+    </select>
+    ${isCurrent?'<span class="term-current-pill">Current Term</span>':'<span class="term-archive-pill">📁 Archived — read only</span>'}
+  </div>
+  <div class="ws-bar">
+    <span class="ws-bar-label">Workstreams (${esc(state.viewTerm)}):</span>
+    ${ws.map(w=>`<span class="ws-pill" style="background:${w.color.light};color:${w.color.text}"><span class="ws-dot" style="background:${w.color.main}"></span>${esc(w.name)}</span>`).join('')||'<span style="font-size:0.74rem;color:var(--muted);font-style:italic">No workstreams defined for this term.</span>'}
+    ${state.isAdmin&&isCurrent?`<button class="ws-edit-btn" onclick="openWsEditor()">✎ Edit Workstreams</button>`:''}
+  </div>
+  <div class="nav-tabs">
+    <div class="tab ${state.view==='overview'?'active':''}" onclick="setView('overview')">Overview</div>
+    ${tabs}
+  </div>
+  <div class="page-wrap">
+    <div class="main" id="mainContent"></div>
+    ${renderSidebar()}
+  </div>`;
+
+  const main=document.getElementById('mainContent');
+  if(state.view==='overview') renderOverview(main);
+  else renderPosition(main,state.currentPos);
+}
+
+function renderOverview(main){
+  const ws=wsInfo(state.viewTerm);
+  const filtered=state.wsFilter==='all'?POSITIONS:POSITIONS.filter(p=>getPosWs(p.id,state.viewTerm).includes(state.wsFilter));
+  let html=`<div class="ws-filter-bar">
+    <button class="ws-filter-btn" style="${state.wsFilter==='all'?'border-color:var(--green);background:var(--green);color:white':''}" onclick="setFilter('all')">All</button>
+    ${ws.map(w=>`<button class="ws-filter-btn" style="${state.wsFilter===w.id?`border-color:${w.color.main};background:${w.color.main};color:white`:''}" onclick="setFilter('${esc(w.id)}')">${esc(w.name)}</button>`).join('')}
+  </div><div class="overview-grid">`;
+  filtered.forEach(p=>{
+    const {completed,total,pct}=getCompletion(p.id);
+    const allDone=total>0&&completed===total;
+    const blk=hasBlockers(p.id),chk=hasCheckins(p.id);
+    const isMine=state.myPosition===p.id;
+    const posWs=getPosWs(p.id,state.viewTerm);
+    const tags=posWs.map(id=>{
+      const w=ws.find(x=>x.id===id);
+      if(!w) return '';
+      return `<span class="ws-pill" style="font-size:0.63rem;padding:2px 7px;background:${w.color.light};color:${w.color.text}">${esc(w.name)}</span>`;
+    }).join('');
+    html+=`<div class="overview-card" onclick="setView('position','${p.id}')">
+      <div style="display:flex;align-items:center;gap:6px;margin-bottom:10px">
+        <div class="overview-card-title" style="flex:1">${p.title}</div>
+        ${isMine?'<span class="badge badge-gold">You</span>':''}
+      </div>
+      <div style="margin-bottom:10px">
+        <div class="progress-label"><span>Org goals (${esc(state.viewTerm)})</span><span style="font-weight:700;color:${allDone?'var(--green)':'var(--muted)'}">${completed}/${total}</span></div>
+        <div class="progress-bar"><div class="progress-fill ${allDone?'all-done':''}" style="width:${pct}%"></div></div>
+      </div>
+      <div style="display:flex;flex-wrap:wrap;gap:4px">${tags}</div>
+      <div style="display:flex;gap:4px;flex-wrap:wrap;margin-top:8px">
+        ${allDone&&total>0?'<span class="badge badge-green">✓ All Complete</span>':''}
+        ${blk?'<span class="badge badge-red">🚨 Blocker</span>':''}
+        ${chk?'<span class="badge badge-blue">📅 Check-in</span>':''}
+      </div>
+    </div>`;
+  });
+  html+='</div>';
+  main.innerHTML=html;
+}
+
+function renderPosition(main,posId){
+  const pos=POSITIONS.find(p=>p.id===posId);
+  if(!pos){setView('overview');return;}
+  const {completed,total}=getCompletion(posId);
+  const isCurrent=isViewingCurrentTerm();
+  const ws=wsInfo(state.viewTerm);
+  const posWsIds=getPosWs(posId,state.viewTerm);
+  const wsTags=posWsIds.map(id=>{
+    const w=ws.find(x=>x.id===id);
+    if(!w) return '';
+    return `<span style="font-size:0.68rem;font-weight:600;padding:3px 9px;border-radius:11px;background:rgba(255,255,255,0.2);color:white;text-transform:uppercase;letter-spacing:0.05em">${esc(w.name)}</span>`;
+  }).join(' ');
+  const orgItems=goalsForTerm(posId,'org',state.viewTerm);
+  const persItems=goalsForTerm(posId,'pers',state.viewTerm);
+  const orgHTML=orgItems.map(({goal,idx})=>renderOrgBlock(posId,idx,goal,isCurrent)).join('')||'<div class="no-updates" style="margin-bottom:10px">No organizational goals in this term.</div>';
+  const persHTML=persItems.map(({goal,idx})=>renderPersBlock(posId,idx,goal,isCurrent)).join('')||'<div class="no-updates" style="margin-bottom:10px">No personal goals in this term.</div>';
+  const iCanUpdate=canUpdate(posId);
+
+  // admin workstream assignment chips
+  const wsAssign = state.isAdmin&&isCurrent ? `
+  <div class="pos-ws-assign">
+    <div class="pos-ws-assign-label">🎯 Assigned workstreams (click to toggle)</div>
+    <div>${ws.map(w=>{
+      const on=posWsIds.includes(w.id);
+      return `<button class="ws-chip" style="${on?`border-color:${w.color.main};background:${w.color.light};color:${w.color.text};font-weight:700`:''}" onclick="togglePosWs('${posId}','${esc(w.id)}')">${on?'✓ ':''}${esc(w.name)}</button>`;
+    }).join('')||'<span class="no-updates">No workstreams defined — add them via ✎ Edit Workstreams.</span>'}</div>
+  </div>` : '';
+
+  main.innerHTML=`
+  ${!isCurrent?`<div class="readonly-notice">📁 You are viewing the archived term <strong>${esc(state.viewTerm)}</strong>. Goals here are read-only. Switch back to ${esc(state.currentTerm)} in the term bar to make changes.</div>`:''}
+  ${isCurrent&&!iCanUpdate&&!state.isAdmin?`<div class="readonly-notice">👁 Viewing ${pos.title}. You can add updates only on your own position's page.</div>`:''}
+  <div class="position-card">
+    <div class="card-header">
+      <div>
+        <div class="card-title">${pos.title}</div>
+        <div style="margin-top:7px;display:flex;gap:5px;flex-wrap:wrap">${wsTags}</div>
+      </div>
+      <div style="text-align:right">
+        <div class="completion-badge">✓ ${completed}/${total} org goals · ${esc(state.viewTerm)}</div>
+        <div class="card-sub" style="margin-top:5px">${state.isAdmin&&isCurrent?'Click ○ to mark a goal complete':''}</div>
+      </div>
+    </div>
+    <div class="card-body">
+      ${wsAssign}
+      <div class="goals-grid">
+        <div>
+          <div class="section-label">
+            <div class="icon org-icon">🏢</div>
+            <div><strong>Organizational Goals</strong><br><span>Impact on PLTF mission & workstreams</span></div>
+          </div>
+          <div id="orgList-${posId}">${orgHTML}</div>
+          ${state.isAdmin&&isCurrent?`<button class="add-btn" onclick="addGoal('org','${posId}')">+ Add organizational goal</button>`:''}
+        </div>
+        <div>
+          <div class="section-label">
+            <div class="icon pers-icon">🌱</div>
+            <div><strong>Personal Goals</strong><br><span>Growth & development for this leader</span></div>
+          </div>
+          <div id="persList-${posId}">${persHTML}</div>
+          ${(state.isAdmin||state.myPosition===posId)&&isCurrent?`<button class="add-btn" onclick="addGoal('pers','${posId}')">+ Add personal goal</button>`:''}
+        </div>
+      </div>
+    </div>
+  </div>
+  <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:-10px">
+    <button class="btn" style="color:var(--muted);border:1.5px solid var(--border);background:white;font-family:'DM Sans',sans-serif" onclick="setView('overview')">← Overview</button>
+  </div>`;
+}
+
+function renderOrgBlock(pos,idx,goal,isCurrent){
+  const updates=goal.updates||[];
+  const bc=updates.filter(u=>u.blocker).length, cc=updates.filter(u=>u.checkin).length;
+  const draft=getDraft(pos,idx);
+  const panelId=`panel-${pos}-${idx}`;
+  const done=goal.completed, met=goal.status==='met';
+  const iCanUpdate=canUpdate(pos)&&isCurrent&&!met;
+  const adminCanEdit=state.isAdmin&&isCurrent&&!met;
+
+  const entries=updates.length===0
+    ?`<div class="no-updates">No updates yet.</div>`
+    :updates.map((u,ui)=>`<div class="update-entry ${u.blocker?'hb':''} ${u.checkin?'hc':''}">
+        ${iCanUpdate?`<button class="del-btn" onclick="deleteUpdate('${pos}',${idx},${ui})">✕</button>`:''}
+        <div class="update-meta"><span class="update-date-lbl">📅 ${fmtDate(u.date)}</span>${u.blocker?'<span class="badge badge-red">🚨 Blocker</span>':''}${u.checkin?'<span class="badge badge-blue">📅 Check-in</span>':''}</div>
+        <div class="update-text">${esc(u.text)}</div>
+        ${u.author?`<div class="update-author">— ${esc(u.author)}</div>`:''}
+      </div>`).join('');
+
+  return `<div class="goal-block ${done?'completed':''} ${met?'met-goal':''}" id="block-${pos}-${idx}">
+    <div class="goal-block-header">
+      <button class="complete-btn ${done||met?'done':''}" onclick="toggleComplete('${pos}',${idx})" ${adminCanEdit?'':'disabled title="Only the CEO can mark goals complete"'}>✓</button>
+      <div class="goal-num ${done||met?'done':''}">${idx+1}</div>
+      <textarea class="goal-input ${done||met?'done-text':''}" placeholder="e.g., Ensure onboarding guide is completed…"
+        ${adminCanEdit?`oninput="updateGoalText('org','${pos}',${idx},this.value)"`:'readonly'}>${esc(goal.text)}</textarea>
+    </div>
+    <div style="padding:0 12px 8px;display:flex;gap:5px;flex-wrap:wrap;align-items:center">
+      <span class="goal-term-tag">${esc(goal.term)}</span>
+      ${goal.carriedFrom?`<span class="goal-carried-tag">↪ carried from ${esc(goal.carriedFrom)}</span>`:''}
+    </div>
+    ${met?`<div class="met-stamp">🏆 Goal Met — archived</div>`:done?`<div class="completed-stamp">✓ Goal Completed</div>`:''}
+    <div class="action-bar">
+      <button class="action-btn" onclick="togglePanel('${panelId}')">📝 ${iCanUpdate?'Enter Update':'View Updates'}</button>
+      ${updates.length>0?`<span class="badge badge-green">${updates.length} update${updates.length>1?'s':''}</span>`:''}
+      ${bc>0?`<span class="badge badge-red">🚨 ${bc} Blocker${bc>1?'s':''}</span>`:''}
+      ${cc>0?`<span class="badge badge-blue">📅 Check-in</span>`:''}
+    </div>
+    <div class="update-panel" id="${panelId}">
+      ${iCanUpdate?`<div class="new-update-form">
+        <div class="form-title">📝 New Weekly Update</div>
+        <div class="form-row"><label>Date</label><input type="date" class="date-input" id="ud-${pos}-${idx}" value="${draft.date}" oninput="updateDraftDate('${pos}',${idx},this.value)"></div>
+        <div class="form-row"><label>Update</label><textarea class="update-textarea" id="ut-${pos}-${idx}" placeholder="Summarize progress this week…">${esc(draft.text)}</textarea></div>
+        <div class="form-actions">
+          <button class="flag-btn b ${draft.blocker?'on':''}" id="fb-${pos}-${idx}" onclick="toggleFlag('${pos}',${idx},'blocker')">🚨 Flag Blocker</button>
+          <button class="flag-btn c ${draft.checkin?'on':''}" id="fc-${pos}-${idx}" onclick="toggleFlag('${pos}',${idx},'checkin')">📅 Request Check-in</button>
+          <button class="save-upd-btn" onclick="saveUpdate('${pos}',${idx})">Save Update</button>
+        </div>
+      </div>`:''}
+      <div class="updates-log">${entries}</div>
+    </div>
+  </div>`;
+}
+
+function renderPersBlock(pos,idx,goal,isCurrent){
+  const met=goal.status==='met';
+  const editable=(state.isAdmin||state.myPosition===pos)&&isCurrent&&!met;
+  return `<div class="pers-block ${met?'met-goal':''}">
+    <div class="pers-block-inner">
+      <div class="goal-num personal">${idx+1}</div>
+      <textarea class="goal-input ${met?'done-text':''}" placeholder="e.g., Develop stakeholder communication skills…"
+        ${editable?`oninput="updateGoalText('pers','${pos}',${idx},this.value)"`:'readonly'}>${esc(goal.text)}</textarea>
+    </div>
+    <div class="pers-term-row">
+      <span class="goal-term-tag">${esc(goal.term)}</span>
+      ${goal.carriedFrom?`<span class="goal-carried-tag">↪ from ${esc(goal.carriedFrom)}</span>`:''}
+      ${met?'<span class="badge badge-gold">🏆 Met</span>':''}
+    </div>
+  </div>`;
+}
+
+// ── Init ──────────────────────────────────────────────────────
+let dataLoaded=false;
+onAuthStateChanged(auth, async (user)=>{
+  state.user=user;
+  state.authChecked=true;
+  state.loggingIn=false;
+  if(user){
+    const email=(user.email||'').toLowerCase();
+    state.isAdmin=ADMIN_EMAILS.includes(email);
+    state.myPosition=EMAIL_TO_POSITION[email]||null;
+    if(!dataLoaded){
+      state.loading=true; render();
+      const raw=await loadData();
+      initData(raw);
+      dataLoaded=true;
+      state.loading=false;
+    }
+  } else {
+    state.isAdmin=false; state.myPosition=null;
+    state.view='overview'; state.currentPos=null;
+    state.loading=false;
+  }
+  render();
+});
+</script>
+</body>
+</html>
